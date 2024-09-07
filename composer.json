@@ -1,0 +1,36 @@
+{
+	"name":"zibings/zsf-cli",
+	"description":"Collection of utility scripts for use alongside ZSF",
+	"minimum-stability":"dev",
+	"license":"Apache-2.0",
+	"version":"1.3.0",
+	"authors":[
+		{
+			"name":"Andrew Male"
+		},
+		{
+			"name":"Matthew Hykes"
+		},
+		{
+			"name":"Jovanni Djonaj"
+		}
+	],
+	"repositories": [
+		{
+			"url": "https://github.com/AndyM84/pseudo.git",
+			"type": "git"
+		}
+	],
+	"require": {
+		"php": ">=8.3",
+		"stoic/stoic": "^1",
+		"stoic/io": "^1",
+		"stoic/pdo": "^1",
+		"ext-pdo": "*",
+		"ext-json": "*"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9",
+		"jimbojsb/pseudo": "dev-AndyM84-8_3"
+	}
+}
