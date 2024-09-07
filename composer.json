@@ -32,5 +32,8 @@
 	"require-dev": {
 		"phpunit/phpunit": "^9",
 		"jimbojsb/pseudo": "dev-AndyM84-8_3"
-	}
+	},
+	"bin": [
+		"zsf-version"
+	]
 }
