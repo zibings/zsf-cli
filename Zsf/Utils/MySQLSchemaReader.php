@@ -1,4 +1,7 @@
 <?php
+
+	namespace Zsf\Utils;
+
 	class MySQLSchemaReader {
 		private $config;
 		private $db_name;
@@ -36,14 +39,12 @@
         FROM INFORMATION_SCHEMA.COLUMNS
         WHERE TABLE_SCHEMA = :db_name;
         ";
-
 			try {
 				$stmt = $this->conn->prepare($query);
 				$stmt->bindParam(':db_name', $this->db_name);
 				$stmt->execute();
 				$columns = [];
 				$current_table = null;
-
 				echo "Column Name  | Data Type  | Nullable  | Key  | Extra\n";
 				echo "---------------------------------------------------\n";
 				while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -51,7 +52,6 @@
 						$current_table = $row['TABLE_NAME'];
 						$columns[$current_table] = [];
 					}
-
 					$columns[$current_table][] = [
 						'name' => $row['COLUMN_NAME'],
 						'type' => $row['DATA_TYPE'],
@@ -59,7 +59,6 @@
 						'nullable' => $row['IS_NULLABLE'],
 						'extra' => $row['EXTRA']
 					];
-
 					echo sprintf(
 						"%-12s | %-12s | %-10s | %-8s | %-4s | %s\n",
 						$row['TABLE_NAME'],
@@ -70,6 +69,7 @@
 						$row['EXTRA']
 					);
 				}
+
 				return $columns;
 			} catch (PDOException $e) {
 				die("Error fetching columns: " . $e->getMessage());
