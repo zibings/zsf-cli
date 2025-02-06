@@ -34,6 +34,6 @@
 		"jimbojsb/pseudo": "dev-AndyM84-8_3"
 	},
 	"bin": [
-		"zsf-version"
+		"zsf-cli"
 	]
 }
