@@ -42,6 +42,12 @@
 				$ch->putLine('System version:      Unknown');
 			}
 
+			if ($config->has('configVersion')) {
+				$ch->putLine('Config version:      ' . $config->get('configVersion'));
+			} else {
+				$ch->putLine('Config version:      Unknown');
+			}
+
 			$ch->putLine();
 
 			if ($fh->fileExists('~/vendor/composer/installed.json')) {
