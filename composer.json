@@ -4,6 +4,22 @@
 	"minimum-stability":"dev",
 	"license":"Apache-2.0",
 	"version":"1.3.0",
+	"autoload":{
+		"exclude-from-classmap": ["Tests/"],
+		"psr-0": {
+			"Zsf\\": "./Zsf",
+			"Zsf\\Utils\\": "./Zsf/Utils",
+			"Zsf\\Utils\\SchemaReader\\": "./Zsf/Utils/SchemaReader"
+		},
+		"psr-4": {
+			"Zsf\\": "./Zsf",
+			"Zsf\\Utils\\": "./Zsf/Utils",
+			"Zsf\\Utils\\SchemaReader\\": "./Zsf/Utils/SchemaReader"
+		},
+		"files": [
+			"Zsf/Utils/CliFunctions.php"
+		]
+	},
 	"authors":[
 		{
 			"name":"Andrew Male"
