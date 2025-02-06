@@ -32,7 +32,6 @@
 
 	use AndyM84\Config\ConfigContainer;
 
-	use Stoic\Utilities\CliScriptHelper;
 	use Stoic\Utilities\ConsoleHelper;
 	use Stoic\Utilities\FileHelper;
 	use Stoic\Web\Resources\StoicStrings;
