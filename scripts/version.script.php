@@ -10,8 +10,19 @@
 	use Zsf\Utils\ZsfCliScript;
 
 	class VersionScript implements ZsfCliScript {
+		public function help() : string {
+			return "ZSF CLI Version Script" . PHP_EOL .
+				"----------------------" . PHP_EOL .
+				"Usage:       vendor/bin/zsf-cli version" . PHP_EOL .
+				"Description: Display version information about installation" . PHP_EOL;
+		}
+
 		public function key() : string {
 			return 'version';
+		}
+
+		public function oneLineDescription() : string {
+			return 'Display version information about installation';
 		}
 
 		public function run(ConsoleHelper $ch, FileHelper $fh, ConfigContainer $config) : void {
