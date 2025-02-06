@@ -41,9 +41,8 @@
 
 	use function Zsf\Utils\isRunningFile;
 
-	$ch     = new ConsoleHelper($argv);
-	$fh     = new FileHelper(STOIC_COMPOSER_PARENT);
-	$script = new CliScriptHelper("ZSF CLI", "Script for accessing ZSF command line tools.");
+	$ch = new ConsoleHelper($argv);
+	$fh = new FileHelper(STOIC_COMPOSER_PARENT);
 
 	if (!isRunningFile(__FILE__)) {
 		$ch->putLine("ZSF CLI tool can only be accessed directly.");
@@ -68,6 +67,38 @@
 			return is_subclass_of($class, ZsfCliScript::class);
 		})
 	);
+
+	if ($ch->compareArgAt(0, 'help', true) || $ch->compareArgAt(0, 'h', true) || $ch->compareArgAt(0, '--help', true) || $ch->compareArgAt(0, '-h', true) || $ch->compareArgAt(0, '/?', true)) {
+		if ($ch->numArgs() > 1) {
+			foreach ($scripts as $script) {
+				if ($ch->compareArgAt(1, strtolower($script->key()), true)) {
+					$ch->putLine($script->help());
+
+					exit;
+				}
+			}
+		}
+
+		$ch->putLine("ZSF CLI Tool");
+		$ch->putLine("------------");
+		$ch->putLine("Usage: zsf-cli [script] [options]");
+		$ch->putLine("");
+		$ch->putLine("Available Scripts:");
+
+		$longest = 0;
+		$pairs   = [];
+
+		foreach ($scripts as $class) {
+			$longest = max($longest, strlen($class->key()));
+			$pairs[] = [$class->key(), $class->oneLineDescription()];
+		}
+
+		foreach ($pairs as $pair) {
+			$ch->putLine(sprintf("  %s%s  %s", $pair[0], str_repeat(' ', $longest - strlen($pair[0]) + 2), $pair[1]));
+		}
+
+		exit;
+	}
 
 	foreach ($scripts as $script) {
 		if ($ch->compareArgAt(0, strtolower($script->key()), true)) {
