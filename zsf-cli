@@ -1,0 +1,78 @@
+#!/usr/bin/env php
+<?php
+
+	if (version_compare('8.3.0', PHP_VERSION, '>')) {
+		fwrite(STDERR, sprintf("Stoic is only supported on versions of PHP 8.3 or newer." . PHP_EOL . "You are using PHP %s (%s)" . PHP_EOL, PHP_VERSION, PHP_BINARY));
+
+		die(1);
+	}
+
+	if (!ini_get('date.timezone')) {
+		ini_set('date.timezone', 'UTC');
+	}
+
+	foreach (['../../' => '../../', '../vendor/' => '../', 'vendor/' => './'] as $file => $relPath) {
+		$path = "{$file}autoload.php";
+
+		if (file_exists($path)) {
+			define('STOIC_COMPOSER_INSTALL', $path);
+			define('STOIC_COMPOSER_PARENT', $relPath);
+
+			break;
+		}
+	}
+
+	if (!defined('STOIC_COMPOSER_INSTALL')) {
+		fwrite(STDERR, "You need to set up the project dependencies using Composer:" . PHP_EOL . PHP_EOL . "    composer install" . PHP_EOL);
+
+		die(1);
+	}
+
+	require(STOIC_COMPOSER_INSTALL);
+
+	use AndyM84\Config\ConfigContainer;
+
+	use Stoic\Utilities\CliScriptHelper;
+	use Stoic\Utilities\ConsoleHelper;
+	use Stoic\Utilities\FileHelper;
+	use Stoic\Web\Resources\StoicStrings;
+
+	use Zsf\Utils\ZsfCliScript;
+
+	use function Zsf\Utils\isRunningFile;
+
+	$ch     = new ConsoleHelper($argv);
+	$fh     = new FileHelper(STOIC_COMPOSER_PARENT);
+	$script = new CliScriptHelper("ZSF CLI", "Script for accessing ZSF command line tools.");
+
+	if (!isRunningFile(__FILE__)) {
+		$ch->putLine("ZSF CLI tool can only be accessed directly.");
+
+		exit;
+	}
+
+	if (!$fh->fileExists(StoicStrings::SETTINGS_FILE_PATH)) {
+		$ch->putLine("No Stoic/ZSF settings file found.  Please run `vendor/bin/stoic-create` to initialize your project.");
+
+		exit;
+	}
+
+	$classes = get_declared_classes();
+	$config  = new ConfigContainer($fh->getContents(StoicStrings::SETTINGS_FILE_PATH));
+
+	$scripts = array_map(
+		function ($class) {
+			return new $class();
+		},
+		array_filter($classes, function ($class) {
+			return is_subclass_of($class, ZsfCliScript::class);
+		})
+	);
+
+	foreach ($scripts as $script) {
+		if ($ch->compareArgAt(0, strtolower($script->key()), true)) {
+			$script->run($ch, $fh, $config);
+
+			exit;
+		}
+	}
