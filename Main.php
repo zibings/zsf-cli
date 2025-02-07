@@ -1,4 +1,7 @@
 <?php
+
+	use Zsf\Utils\MySQLSchemaReader;
+
 	require_once 'MySQLSchemaReader.php';
 	require_once 'ClassGenerator.php';
 
