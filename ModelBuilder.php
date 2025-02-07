@@ -1,4 +1,6 @@
 <?php
+	include './vendor/autoload.php';
+
 	require_once 'SQLTable.php';
 
 	// Generate cls
@@ -58,16 +60,17 @@
 
 		$PrimaryKeyArgsWithTypes = [];
 		for ($i = 0; $i < count($table->primaryKeys); $i++) {
-			$PrimaryKeyArgsWithTypes[] = $table->primaryKeys[$i]->type . " " . $table->primaryKeys[$i]->name;
+			$PrimaryKeyArgsWithTypes[] = $table->primaryKeys[$i]->type . " $" . $table->primaryKeys[$i]->name;
 		}
 
 		$templateData = [
 		  'ClassName' => $table->name,
 		  'Columns' => $table->columns,
 		  'PrimaryKeys' => $table->primaryKeys,
+		  'FromPrimaryKey' => implode("_", $PrimaryKeyArgsWithoutTypes),
 		  'PrimaryKeyArgs' => implode(",", $PrimaryKeyArgsWithoutTypes),
 		  'PrimaryKeyArgsWithTypes' => implode(",", $PrimaryKeyArgsWithTypes),
-		  'UniqueKeys' => $table->uniqueKeys,
+			'UniqueKeys' => $table->uniqueKeys,
 		];
 	} catch (PDOException $e) {
 		die("Database connection failed: " . $e->getMessage() . "\n");
@@ -76,7 +79,11 @@
 	}
 
 	// Create a Plates engine
-	$engine = new League\Plates\Engine('/templates/cls.tpl');
-	$phpCode = $engine->render('php_class', $templateData);
-	file_put_contents("./generated/".$templateData['ClassName'].".php", $phpCode);
+
+	$templatesDir = __DIR__ . '/templates';
+	$engine = new League\Plates\Engine($templatesDir);
+	$phpCode = $engine->render("cls", $templateData);
+
+	$outputPath = __DIR__ . "/generated/".$templateData['ClassName'].".php";
+	file_put_contents($outputPath, $phpCode);
 

@@ -9,19 +9,37 @@
 		} else if (str_contains($dbType, 'varchar') || str_contains($dbType, 'text') || str_contains($dbType, 'char') || str_contains($dbType, 'mediumtext') || strpos($dbType, 'longtext') !== false) {
 			return 'string';
 		} else if (str_contains($dbType, 'date') || str_contains($dbType, 'datetime') || str_contains($dbType, 'timestamp')) {
-			return 'DateTime'; // Or string if you prefer to keep it as a string
+			return '\DateTimeInterface';
 		} else if (str_contains($dbType, 'bool')) {
 			return 'bool';
 		} else {
-			return 'mixed'; // Or throw an exception for unknown types if you prefer
+			return '???';
+		}
+	}
+
+	function typeToBaseDbTypes(string $type): string {
+		if (str_contains($type, 'int')) {
+			return 'BCF::INTEGER';
+		} else if (str_contains($type, 'float')) {
+			return 'BCF::INTEGER';
+		} else if (str_contains($type, 'string')) {
+			return 'BCF::STRING';
+		} else if (str_contains($type, '\DateTimeInterface')) {
+			return 'BCF::DATETIME';
+		} else if (str_contains($type, 'bool')) {
+			return 'BCF::BOOLEAN';
+		} else {
+			return '???';
 		}
 	}
 
 	class FlagTypes {
 		const int IS_KEY = 1;
-		const int IS_NULL = 2;
-		const int IS_UNIQUE = 4;
-		const int IS_AUTO_INCREMENT = 8; // Add a flag for auto-increment
+		const int SHOULD_INSERT = 2;
+		const int SHOULD_UPDATE = 4;
+		const int ALLOWS_NULLS = 8;
+		const int IS_UNIQUE = 16;
+		const int AUTO_INCREMENT = 32; // Add a flag for auto-increment
 
 		public static function generateFlags(string $key, string $null, string $extra): int {
 			$flags = 0;
@@ -29,13 +47,13 @@
 				$flags |= self::IS_KEY;
 			}
 			if ($null === 'NO') {
-				$flags |= self::IS_NULL;
+				$flags |= self::ALLOWS_NULLS;
 			}
 			if ($key === 'UNI') {
 				$flags |= self::IS_UNIQUE;
 			}
 			if (str_contains($extra, 'auto_increment')) {
-				$flags |= self::IS_AUTO_INCREMENT;
+				$flags |= self::AUTO_INCREMENT;
 			}
 			return $flags;
 		}
@@ -44,14 +62,38 @@
 	class SQLColumn {
 		public string $name;
 		public string $type;
+		public string $baseType;
 		public int $flags;
+		public string $flagsToString;
 		public string $extra;
 
-		public function __construct(string $name, string $type, int $flags, string $extra) {
+		public function __construct(string $name, string $type, string $baseType, int $flags, string $extra) {
 			$this->name = $name;
 			$this->type = $type;
+			$this->baseType = $baseType;
 			$this->flags = $flags;
 			$this->extra = $extra;
+		}
+
+		public function finalizeFlags() {
+			$finalizedArray = [];
+			if ($this->flags & FlagTypes::IS_KEY) {
+				$finalizedArray[] = "BaseDbTypes::IS_KEY";
+			}
+			if ($this->flags & FlagTypes::SHOULD_INSERT) {
+				$finalizedArray[] = "BaseDbTypes::SHOULD_INSERT";
+			}
+			if ($this->flags & FlagTypes::SHOULD_UPDATE) {
+				$finalizedArray[] = "BaseDbTypes::SHOULD_UPDATE";
+			}
+			if ($this->flags & FlagTypes::ALLOWS_NULLS) {
+				$finalizedArray[] = "BaseDbTypes::ALLOWS_NULLS";
+			}
+			if ($this->flags & FlagTypes::AUTO_INCREMENT) {
+				$finalizedArray[] = "BaseDbTypes::AUTO_INCREMENT";
+			}
+
+			$this->flagsToString = implode(" | ", $finalizedArray);
 		}
 	}
 
@@ -93,7 +135,9 @@
 				while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 					$flags = FlagTypes::generateFlags($row['Key'], $row['Null'], $row['Extra']);
 					$type = databaseToPhpType($row['Type']);
-					$column = new SQLColumn($row['Field'], $type, $flags, $row['Extra']);
+					$baseType = typeToBaseDbTypes($type);
+					$column = new SQLColumn($row['Field'], $type, $baseType, $flags, $row['Extra']);
+					$column->finalizeFlags();
 					$this->columns[] = $column;
 
 					if ($row['Key'] === 'PRI') {
@@ -126,9 +170,9 @@
 			foreach ($this->columns as $column) {
 				$flagsString = [];
 				if ($column->flags & FlagTypes::IS_KEY) $flagsString[] = "KEY";
-				if ($column->flags & FlagTypes::IS_NULL) $flagsString[] = "NULL";
+				if ($column->flags & FlagTypes::ALLOWS_NULLS) $flagsString[] = "NULL";
 				if ($column->flags & FlagTypes::IS_UNIQUE) $flagsString[] = "UNIQUE";
-				if ($column->flags & FlagTypes::IS_AUTO_INCREMENT) $flagsString[] = "AUTO_INCREMENT";
+				if ($column->flags & FlagTypes::AUTO_INCREMENT) $flagsString[] = "AUTO_INCREMENT";
 
 				$output .= "  " . $column->name . " (" . $column->type . ") Flags: [" . implode(", ", $flagsString) . "] Extra: " . $column->extra . "\n";
 			}
