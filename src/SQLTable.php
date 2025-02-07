@@ -74,7 +74,7 @@
 		public array $uniqueKeys = [];
 
 
-		public function __construct(string $name = "") {
+		public function __construct(string $name) {
 			$this->name = $name;
 		}
 
@@ -84,7 +84,8 @@
 		 */
 		public function parseTable(PDO $pdo): bool {
 			try {
-				$stmt = $pdo->query("DESCRIBE " . $this->name);
+				$sql = "DESCRIBE " . $this->name;
+				$stmt = $pdo->query($sql);
 				if ($stmt === false) {
 					return false;
 				}

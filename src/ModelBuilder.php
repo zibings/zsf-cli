@@ -1,4 +1,6 @@
 <?php
+	require_once 'SQLTable.php';
+
 	// Generate cls
 	// Generate rpo
 	// Generate api
@@ -33,7 +35,7 @@
 	$dbPort = 3306;
 	$dbUser = "root";
 	$dbPass = "P@55word";
-	$dbName = "zsf";
+	$dbName = "stoic"; // TODO(Jovanni): Fix this should be zsf
 
 	$templateData = [];
 
@@ -43,17 +45,28 @@
 		$pdo = new PDO($dsn, $dbUser, $dbPass);
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-		$table = new SQLTable();
+		$table = new SQLTable("User");
 		$result = $table->parseTable($pdo);
 		if ($result === false) {
 			die("Failed to parse sql table");
 		}
 
+		$PrimaryKeyArgsWithoutTypes = [];
+		for ($i = 0; $i < count($table->primaryKeys); $i++) {
+			$PrimaryKeyArgsWithoutTypes[] = $table->primaryKeys[$i]->name;
+		}
+
+		$PrimaryKeyArgsWithTypes = [];
+		for ($i = 0; $i < count($table->primaryKeys); $i++) {
+			$PrimaryKeyArgsWithTypes[] = $table->primaryKeys[$i]->type . " " . $table->primaryKeys[$i]->name;
+		}
+
 		$templateData = [
-		  'ClassName' => $table->name, // PHP class name
+		  'ClassName' => $table->name,
 		  'Columns' => $table->columns,
 		  'PrimaryKeys' => $table->primaryKeys,
-		  'PrimaryKeyArgs' => implode(",", $table->primaryKeys),
+		  'PrimaryKeyArgs' => implode(",", $PrimaryKeyArgsWithoutTypes),
+		  'PrimaryKeyArgsWithTypes' => implode(",", $PrimaryKeyArgsWithTypes),
 		  'UniqueKeys' => $table->uniqueKeys,
 		];
 	} catch (PDOException $e) {
