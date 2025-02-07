@@ -2,10 +2,6 @@
 	// Generate cls
 	// Generate rpo
 	// Generate api
-	require 'vendor/autoload.php'; // For Plates (if you want HTML output of the form)
-	// ... (database connection code as before)
-	// ... (code to fetch column and constraint information from the database as before)
-	// Data Preparation for Template (PHP)
 
 	// Database connection here
 	$siteSettings = [
@@ -25,43 +21,49 @@
 		return $defaultValue; // Or throw an exception if you prefer
 	}
 
-	$dbEngine = getSetting($siteSettings, 'dbEngine');
-	$dbHost   = getSetting($siteSettings, 'dbHost');
-	$dbPort   = getSetting($siteSettings, 'dbPort');
-	$dbUser   = getSetting($siteSettings, 'dbUser');
-	$dbPass   = getSetting($siteSettings, 'dbPass');
-	$dbName   = getSetting($siteSettings, 'dbName');
+	//$dbEngine = getSetting($siteSettings, 'dbEngine');
+	//$dbHost   = getSetting($siteSettings, 'dbHost');
+	//$dbPort   = getSetting($siteSettings, 'dbPort');
+	//$dbUser   = getSetting($siteSettings, 'dbUser');
+	//$dbPass   = getSetting($siteSettings, 'dbPass');
+	//$dbName   = getSetting($siteSettings, 'dbName');
+
+	$dbEngine = "mysql";
+	$dbHost = "localhost";
+	$dbPort = 3306;
+	$dbUser = "root";
+	$dbPass = "P@55word";
+	$dbName = "zsf";
 
 	$templateData = [];
 
 	try {
 		$dsn = "$dbEngine:host=$dbHost;port=$dbPort;dbname=$dbName";
+		echo($dsn . "\n");
 		$pdo = new PDO($dsn, $dbUser, $dbPass);
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-		$table = new SQLTable($pdo);
+		$table = new SQLTable();
+		$result = $table->parseTable($pdo);
+		if ($result === false) {
+			die("Failed to parse sql table");
+		}
+
 		$templateData = [
 		  'ClassName' => $table->name, // PHP class name
+		  'Columns' => $table->columns,
 		  'PrimaryKeys' => $table->primaryKeys,
 		  'PrimaryKeyArgs' => implode(",", $table->primaryKeys),
 		  'UniqueKeys' => $table->uniqueKeys,
-		  'Extras' => $table->extras,
 		];
-
 	} catch (PDOException $e) {
-		echo "Database connection failed: " . $e->getMessage() . "\n";
-		// Handle the error appropriately (log it, display a message, etc.)
+		die("Database connection failed: " . $e->getMessage() . "\n");
 	} finally {
-		// Close the connection (important!)
-		$pdo = null; // Setting $pdo to null closes the connection
+		$pdo = null;
 	}
 
-
-
-
-
 	// Create a Plates engine
-	$engine = new League\Plates\Engine('./templates');
+	$engine = new League\Plates\Engine('/templates/cls.tpl');
 	$phpCode = $engine->render('php_class', $templateData);
 	file_put_contents("./generated/".$templateData['ClassName'].".php", $phpCode);
 
