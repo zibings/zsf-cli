@@ -17,6 +17,7 @@
 	class LoginKeyAPI extends ApiController {
 		public function createLoginKey(Request $request, array $matches = null): Response {
 			$ret = $this->newResponse();
+			$params = $request->getInput();
 
 			if ($this->tryGetParams($ret, $request, ['UserID', 'Provider']) === false) {
 				return $ret;
@@ -41,6 +42,7 @@
 
 		public function readLoginKey(Request $request, array $matches = null): Response {
 			$ret = $this->newResponse();
+			$params = $request->getInput();
 
 			if ($this->tryGetParams($ret, $request, ['UserID', 'Provider']) === false) {
 				return $ret;
