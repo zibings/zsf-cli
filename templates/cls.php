@@ -15,7 +15,7 @@
 		public <?= $this->e($column->type) ?> $<?= $this->e($column->name) ?>;
 <?php endforeach; ?>
 
-		public static function from<?= $this->e($FromPrimaryKey) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>,  PdoHelper $db, Logger $log = null): <?= $this->e($ClassName) ?> {
+		public static function from<?= $this->e($FromPrimaryKey) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>, PdoHelper $db, Logger $log = null): <?= $this->e($ClassName) ?> {
 			$ret = new <?= $this->e($ClassName) ?>($db, $log);
 <?php foreach ($PrimaryKeys as $pk): ?>
 			$ret-><?= $this->e($pk->name) ?> = $<?= $this->e($pk->name) ?>;
@@ -32,7 +32,6 @@
 			return $ret;
 		}
 <?php endforeach; ?>
-
 		protected function __setupModel() : void {
 <?php foreach ($Columns as $column): ?>
 			$this->setColumn('<?= $this->e($column->name) ?>', '<?= $this->e($column->name) ?>', <?= $this->e($column->baseType) ?><?php if ($this->e($column->flagsToString) !== ""): ?>, <?= $this->e($column->flagsToString) ?><?php endif; ?>);

@@ -47,7 +47,7 @@
 		$pdo = new PDO($dsn, $dbUser, $dbPass);
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-		$table = new SQLTable("User");
+		$table = new SQLTable("LoginKey");
 		$result = $table->parseTable($pdo);
 		if ($result === false) {
 			die("Failed to parse sql table");
@@ -55,9 +55,11 @@
 
 		$PrimaryKeyArgsWithoutTypes = [];
 		$PrimaryKeyArgsWithTypes = [];
+		$PrimaryKeyArgsStrings = [];
 		for ($i = 0; $i < count($table->primaryKeys); $i++) {
 			$PrimaryKeyArgsWithoutTypes[] = $table->primaryKeys[$i]->name;
 			$PrimaryKeyArgsWithTypes[] = $table->primaryKeys[$i]->type . " $" . $table->primaryKeys[$i]->name;
+			$PrimaryKeyArgsStrings[] = "'" . $table->primaryKeys[$i]->name . "'";
 		}
 
 		$UniqueKeyArgsWithoutTypes = [];
@@ -71,16 +73,17 @@
 		  'ClassName' => $table->name,
 		  'Columns' => $table->columns,
 
-		  'PrimaryKeys' => $table->primaryKeys,
+			'PrimaryKeys' => $table->primaryKeys,
+			'PrimaryKeyArgsStrings' => implode(", ", $PrimaryKeyArgsStrings),
 			'FromPrimaryKey' => implode("_", $PrimaryKeyArgsWithoutTypes),
-		  'PrimaryKeyArgs' => implode(",", $PrimaryKeyArgsWithoutTypes),
-		  'PrimaryKeyArgsWithTypes' => implode(",", $PrimaryKeyArgsWithTypes),
+		  'PrimaryKeyArgs' => implode(", ", $PrimaryKeyArgsWithoutTypes),
+		  'PrimaryKeyArgsWithTypes' => implode(", ", $PrimaryKeyArgsWithTypes),
 
 			'UniqueKeys' => $table->uniqueKeys,
 			'FromUniqueKey' => implode("_", $UniqueKeyArgsWithoutTypes),
-			'UniqueKeyArgsWithoutTypes' => implode(",", $UniqueKeyArgsWithoutTypes),
-			'UniqueKeyArgsWithTypes' => implode(",", $UniqueKeyArgsWithTypes),
-			'UniqueKeyArgs' => implode(",", $UniqueKeyArgsWithoutTypes),
+			'UniqueKeyArgsWithoutTypes' => implode(", ", $UniqueKeyArgsWithoutTypes),
+			'UniqueKeyArgsWithTypes' => implode(", ", $UniqueKeyArgsWithTypes),
+			'UniqueKeyArgs' => implode(", ", $UniqueKeyArgsWithoutTypes),
 		];
 	} catch (PDOException $e) {
 		die("Database connection failed: " . $e->getMessage() . "\n");
@@ -93,7 +96,14 @@
 	$templatesDir = __DIR__ . '/templates';
 	$engine = new League\Plates\Engine($templatesDir);
 	$phpCode = $engine->render("cls", $templateData);
-
-	$outputPath = __DIR__ . "/generated/".$templateData['ClassName'].".php";
+	$outputPath = __DIR__ . "/generated/cls/" . $templateData['ClassName'] . ".cls.php";
 	file_put_contents($outputPath, $phpCode);
+
+	$phpCode = $engine->render("api", $templateData);
+	$outputPath = __DIR__ . "/generated/api/" . $templateData['ClassName'] . ".api.php";
+	file_put_contents($outputPath, $phpCode);
+
+	// $phpCode = $engine->render("rpo", $templateData);
+	// $outputPath = __DIR__ . "/generated/".$templateData['ClassName'].".php";
+	// file_put_contents($outputPath, $phpCode);
 
