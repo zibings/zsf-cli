@@ -53,6 +53,11 @@
 			die("Failed to parse sql table");
 		}
 
+		$ColumnArgsStrings = [];
+		for ($i = 0; $i < count($table->columns); $i++) {
+			$ColumnArgsStrings[] = "'" . $table->columns[$i]->name . "'";
+		}
+
 		$PrimaryKeyArgsWithoutTypes = [];
 		$PrimaryKeyArgsWithTypes = [];
 		$PrimaryKeyArgsStrings = [];
@@ -71,7 +76,8 @@
 
 		$templateData = [
 		  'ClassName' => $table->name,
-		  'Columns' => $table->columns,
+			'Columns' => $table->columns,
+			'ColumnArgsStrings' => implode(", ", $ColumnArgsStrings),
 
 			'PrimaryKeys' => $table->primaryKeys,
 			'PrimaryKeyArgsStrings' => implode(", ", $PrimaryKeyArgsStrings),
