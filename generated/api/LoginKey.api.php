@@ -114,4 +114,13 @@
 			return $ret;
 		}
 
+		protected function registerEndpoints() : void {
+			$this->registerEndpoint('POST',   '/\/?LoginKey\/?$/i', 'createLoginKey');
+			$this->registerEndpoint('GET',    '/\/?LoginKey\/?$/i', 'readLoginKey');
+			$this->registerEndpoint('PATCH',  '/\/?LoginKey\/?$/i', 'updateLoginKey');
+			$this->registerEndpoint('DELETE', '/\/?LoginKey\/?$/i', 'deleteLoginKey');
+
+			return;
+		}
+
 	}

@@ -149,4 +149,13 @@
 			return $ret;
 		}
 
+		protected function registerEndpoints() : void {
+			$this->registerEndpoint('POST',   '/\/?<?= $this->e($ClassName) ?>\/?$/i', 'create<?= $this->e($ClassName) ?>');
+			$this->registerEndpoint('GET',    '/\/?<?= $this->e($ClassName) ?>\/?$/i', 'read<?= $this->e($ClassName) ?>');
+			$this->registerEndpoint('PATCH',  '/\/?<?= $this->e($ClassName) ?>\/?$/i', 'update<?= $this->e($ClassName) ?>');
+			$this->registerEndpoint('DELETE', '/\/?<?= $this->e($ClassName) ?>\/?$/i', 'delete<?= $this->e($ClassName) ?>');
+
+			return;
+		}
+
 	}
