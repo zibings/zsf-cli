@@ -39,18 +39,20 @@
 	$dbPass = "P@55word";
 	$dbName = "stoic"; // TODO(Jovanni): Fix this should be zsf
 
+
+
 	$templateData = [];
 
 	try {
 		$dsn = "$dbEngine:host=$dbHost;port=$dbPort;dbname=$dbName";
-		echo($dsn . "\n");
 		$pdo = new PDO($dsn, $dbUser, $dbPass);
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-		$table = new SQLTable("LoginKey");
+		$tableName = readline('Please enter a table name: ');
+		$table = new SQLTable($tableName);
 		$result = $table->parseTable($pdo);
 		if ($result === false) {
-			die("Failed to parse sql table");
+			die("Failed to parse " . $tableName . " table");
 		}
 
 		$ColumnArgsStrings = [];
@@ -96,8 +98,6 @@
 	} finally {
 		$pdo = null;
 	}
-
-	// Create a Plates engine
 
 	$templatesDir = __DIR__ . '/templates';
 	$engine = new League\Plates\Engine($templatesDir);
