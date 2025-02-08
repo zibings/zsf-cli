@@ -3,3 +3,4 @@ composer.lock
 vendor/
 test.php
 siteSettings.json
+generated/

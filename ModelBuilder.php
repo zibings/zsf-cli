@@ -109,7 +109,7 @@
 	$outputPath = __DIR__ . "/generated/api/" . $templateData['ClassName'] . ".api.php";
 	file_put_contents($outputPath, $phpCode);
 
-	// $phpCode = $engine->render("rpo", $templateData);
-	// $outputPath = __DIR__ . "/generated/".$templateData['ClassName'].".php";
-	// file_put_contents($outputPath, $phpCode);
+	$phpCode = $engine->render("rpo", $templateData);
+	$outputPath = __DIR__ . "/generated/rpo/".$templateData['ClassName'].".rpo.php";
+	file_put_contents($outputPath, $phpCode);
 
