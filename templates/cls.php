@@ -1,13 +1,11 @@
 <?= '<?php' ?>
 
-	namespace <?= '???' ?>;  // Use short tag for namespace
+	namespace <?= '???' ?>;
 
 	use Stoic\Log\Logger;
-	use Stoic\Pdo\BaseDbQueryTypes;
 	use Stoic\Pdo\BaseDbTypes;
 	use Stoic\Pdo\PdoHelper;
 	use Stoic\Pdo\StoicDbModel;
-	use Stoic\Utilities\ReturnHelper;
 	use Stoic\Pdo\BaseDbColumnFlags as BCF;
 
 	class <?= $this->e($ClassName) ?> extends StoicDbModel {

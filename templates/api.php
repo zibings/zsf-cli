@@ -2,20 +2,17 @@
 
 	namespace <?= '???' ?>;  // Use short tag for namespace
 
-	use Stoic\Log\Logger;
-	use Stoic\Pdo\PdoHelper;
 	use Stoic\Web\Api\Response;
-	use Stoic\Web\Api\Stoic;
 	use Stoic\Web\Request;
-
 	use Zibings\ApiController;
 
-	// Create
-	// Read
-	// Update
-	// Delete
-
 	class <?= $this->e($ClassName) ?>API extends ApiController {
+
+		/**
+		* Creates/Inserts a <?= $this->e($ClassName) ?> into the database.
+		*
+		* @return Response
+		*/
 		public function create<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
 			$ret = $this->newResponse();
 			$params = $request->getInput();
@@ -49,6 +46,11 @@
 			return $ret;
 		}
 
+		/**
+		* Get/Read a <?= $this->e($ClassName) ?> from the database.
+		*
+		* @return Response
+		*/
 		public function read<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
 			$ret = $this->newResponse();
 			$params = $request->getInput();
@@ -83,6 +85,11 @@
 		}
 
 
+		/**
+		* Modify/Update a <?= $this->e($ClassName) ?> from the database.
+		*
+		* @return Response
+		*/
 		public function update<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
 			$ret = $this->newResponse();
 			$params = $request->getInput();
@@ -116,6 +123,11 @@
 			return $ret;
 		}
 
+		/**
+		* Delete a <?= $this->e($ClassName) ?> from the database.
+		*
+		* @return Response
+		*/
 		public function delete<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
 			$ret = $this->newResponse();
 			$params = $request->getInput();
