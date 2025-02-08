@@ -17,9 +17,23 @@
 		public \DateTimeInterface $LastLogin;
 		public \DateTimeInterface $LastActive;
 
+		public static function fromID(int $ID,  PdoHelper $db, Logger $log = null): User {
+			$ret = new User($db, $log);
+			$ret->ID = $ID;
+			$ret->read();
+			return $ret;
+		}
+
+		public static function fromEmail(string $Email, PdoHelper $db, Logger $log = null): User {
+			$ret = new User($db, $log);
+			$ret->Email = $Email;
+			$ret->read();
+			return $ret;
+		}
+
 		protected function __setupModel() : void {
 			$this->setColumn('ID', 'ID', BCF::INTEGER, BaseDbTypes::IS_KEY | BaseDbTypes::ALLOWS_NULLS | BaseDbTypes::AUTO_INCREMENT);
-			$this->setColumn('Email', 'Email', BCF::STRING, BaseDbTypes::ALLOWS_NULLS);
+			$this->setColumn('Email', 'Email', BCF::STRING, BaseDbTypes::IS_UNIQUE | BaseDbTypes::ALLOWS_NULLS);
 			$this->setColumn('EmailConfirmed', 'EmailConfirmed', BCF::INTEGER, BaseDbTypes::ALLOWS_NULLS);
 			$this->setColumn('Joined', 'Joined', BCF::DATETIME, BaseDbTypes::ALLOWS_NULLS);
 			$this->setColumn('LastLogin', 'LastLogin', BCF::DATETIME);
@@ -28,12 +42,8 @@
 			$this->ID = 0;
 			$this->Email = "";
 			$this->EmailConfirmed = 0;
-		}
-
-		public static function fromID(int $ID,  PdoHelper $db, Logger $log = null): User {
-			$ret = new User($db, $log);
-			$ret->ID = $ID;
-			$ret->read();
-			return $ret;
+			$this->Joined = new \DateTime();
+			$this->LastLogin = new \DateTime();
+			$this->LastActive = new \DateTime();
 		}
 	}

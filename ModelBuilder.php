@@ -54,23 +54,33 @@
 		}
 
 		$PrimaryKeyArgsWithoutTypes = [];
-		for ($i = 0; $i < count($table->primaryKeys); $i++) {
-			$PrimaryKeyArgsWithoutTypes[] = $table->primaryKeys[$i]->name;
-		}
-
 		$PrimaryKeyArgsWithTypes = [];
 		for ($i = 0; $i < count($table->primaryKeys); $i++) {
+			$PrimaryKeyArgsWithoutTypes[] = $table->primaryKeys[$i]->name;
 			$PrimaryKeyArgsWithTypes[] = $table->primaryKeys[$i]->type . " $" . $table->primaryKeys[$i]->name;
+		}
+
+		$UniqueKeyArgsWithoutTypes = [];
+		$UniqueKeyArgsWithTypes = [];
+		for ($i = 0; $i < count($table->uniqueKeys); $i++) {
+			$UniqueKeyArgsWithoutTypes[] = $table->uniqueKeys[$i]->name;
+			$UniqueKeyArgsWithTypes[] = $table->uniqueKeys[$i]->type . " $" . $table->uniqueKeys[$i]->name;
 		}
 
 		$templateData = [
 		  'ClassName' => $table->name,
 		  'Columns' => $table->columns,
+
 		  'PrimaryKeys' => $table->primaryKeys,
-		  'FromPrimaryKey' => implode("_", $PrimaryKeyArgsWithoutTypes),
+			'FromPrimaryKey' => implode("_", $PrimaryKeyArgsWithoutTypes),
 		  'PrimaryKeyArgs' => implode(",", $PrimaryKeyArgsWithoutTypes),
 		  'PrimaryKeyArgsWithTypes' => implode(",", $PrimaryKeyArgsWithTypes),
+
 			'UniqueKeys' => $table->uniqueKeys,
+			'FromUniqueKey' => implode("_", $UniqueKeyArgsWithoutTypes),
+			'UniqueKeyArgsWithoutTypes' => implode(",", $UniqueKeyArgsWithoutTypes),
+			'UniqueKeyArgsWithTypes' => implode(",", $UniqueKeyArgsWithTypes),
+			'UniqueKeyArgs' => implode(",", $UniqueKeyArgsWithoutTypes),
 		];
 	} catch (PDOException $e) {
 		die("Database connection failed: " . $e->getMessage() . "\n");

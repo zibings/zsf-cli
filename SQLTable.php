@@ -83,6 +83,9 @@
 			if ($this->flags & FlagTypes::SHOULD_INSERT) {
 				$finalizedArray[] = "BaseDbTypes::SHOULD_INSERT";
 			}
+			if ($this->flags & FlagTypes::IS_UNIQUE) {
+				$finalizedArray[] = "BaseDbTypes::IS_UNIQUE";
+			}
 			if ($this->flags & FlagTypes::SHOULD_UPDATE) {
 				$finalizedArray[] = "BaseDbTypes::SHOULD_UPDATE";
 			}
