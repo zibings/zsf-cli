@@ -22,7 +22,8 @@
 		if (array_key_exists($key, $settings)) {
 			return $settings[$key];
 		}
-		return $defaultValue; // Or throw an exception if you prefer
+
+		return $defaultValue;
 	}
 
 	//$dbEngine = getSetting($siteSettings, 'dbEngine');
