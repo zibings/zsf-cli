@@ -30,19 +30,21 @@
 	}
 
 	function typeToBaseDbTypes(string $type): string {
-		if (str_contains($type, 'int')) {
-			return 'BCF::INTEGER';
-		} else if (str_contains($type, 'float')) {
-			return 'BCF::INTEGER';
-		} else if (str_contains($type, 'string')) {
-			return 'BCF::STRING';
-		} else if (str_contains($type, '\DateTimeInterface')) {
-			return 'BCF::DATETIME';
-		} else if (str_contains($type, 'bool')) {
-			return 'BCF::BOOLEAN';
-		} else {
-			return '???';
+		$typeLookup = [
+			'int'                => 'BaseDbTypes::INTEGER',
+			'float'              => 'BaseDbTypes::FLOAT',
+			'string'             => 'BaseDbTypes::STRING',
+			'\DateTimeInterface' => 'BaseDbTypes::DATETIME',
+			'bool'               => 'BaseDbTypes::BOOLEAN',
+		];
+
+		foreach ($typeLookup as $key => $value) {
+			if (str_contains($type, $key)) {
+				return $value;
+			}
 		}
+
+		return '???';
 	}
 
 	class FlagTypes {
