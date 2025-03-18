@@ -2,19 +2,31 @@
 
 	function databaseToPhpType(string $dbType): string {
 		$dbType = strtolower($dbType);
-		if (str_contains($dbType, 'int') || str_contains($dbType, 'tinyint') || str_contains($dbType, 'bigint')) {
-			return 'int';
-		} else if (str_contains($dbType, 'float') || str_contains($dbType, 'double') || str_contains($dbType, 'decimal')) {
-			return 'float';
-		} else if (str_contains($dbType, 'varchar') || str_contains($dbType, 'text') || str_contains($dbType, 'char') || str_contains($dbType, 'mediumtext') || strpos($dbType, 'longtext') !== false) {
-			return 'string';
-		} else if (str_contains($dbType, 'date') || str_contains($dbType, 'datetime') || str_contains($dbType, 'timestamp')) {
-			return '\DateTimeInterface';
-		} else if (str_contains($dbType, 'bool')) {
-			return 'bool';
-		} else {
-			return '???';
+		$typeLookup = [
+			'int'        => 'int',
+			'tinyint'    => 'int',
+			'bigint'     => 'int',
+			'float'      => 'float',
+			'double'     => 'float',
+			'decimal'    => 'float',
+			'varchar'    => 'string',
+			'text'       => 'string',
+			'char'       => 'string',
+			'mediumtext' => 'string',
+			'longtext'   => 'string',
+			'date'       => '\DateTimeInterface',
+			'datetime'   => '\DateTimeInterface',
+			'timestamp'  => '\DateTimeInterface',
+			'bool'       => 'bool',
+		];
+
+		foreach ($typeLookup as $key => $value) {
+			if (str_contains($dbType, $key)) {
+				return $value;
+			}
 		}
+
+		return '???';
 	}
 
 	function typeToBaseDbTypes(string $type): string {
