@@ -29,6 +29,12 @@
 				},
 			];
 
+			$sanitationFuncs = [
+				'trimAndLower' => function (mixed $value) : string {
+					return trim($value);
+				}
+			];
+
 			if ($ret['interactive']) {
 				if (!$validationFuncs['type']($ret['type'])) {
 					$ch->putLine('Aborting script execution, invalid type specified. Valid types are: model, repo, api, all');
@@ -39,15 +45,15 @@
 				return $ret;
 			}
 
+			$maxTries = 3;
+
 			$type = $ch->getQueriedInput(
 				'What type of scaffolding do you want to generate?',
 				'model, repo, api, all',
 				'Invalid type specified. Valid types are: model, repo, api, all',
-				5,
+				$maxTries,
 				$validationFuncs['type'],
-				function ($value) {
-					return trim(strtolower($value));
-				}
+				$sanitationFuncs['trimAndLower']
 			);
 
 			if ($type->isBad()) {
