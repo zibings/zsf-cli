@@ -16,11 +16,26 @@
 				'interactive' => $ch->getParameterWithDefault('ni', 'non-interactive', false, true),
 				'namespace'   => $ch->getParameterWithDefault('ns', 'namespace', '', true),
 				'overwrite'   => $ch->getParameterWithDefault('no', 'no-overwrite', false, true),
-				'table'       => $ch->getParameterWithDefault('t', 'table', '', true),
+				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
 			];
 
+			$validationFuncs = [
+				'empty' => function (mixed $value) : bool {
+					return !empty($value);
+				},
+				'type' => function (mixed $value) : bool {
+					return !empty($value) && in_array(strtolower($value), ['model', 'repo', 'api', 'all']);
+				},
+			];
+
 			if ($ret['interactive']) {
+				if (!$validationFuncs['type']($ret['type'])) {
+					$ch->putLine('Aborting script execution, invalid type specified. Valid types are: model, repo, api, all');
+
+					exit;
+				}
+
 				return $ret;
 			}
 
@@ -29,15 +44,18 @@
 				'model, repo, api, all',
 				'Invalid type specified. Valid types are: model, repo, api, all',
 				5,
-				function ($value) {
-					return !empty($value) && in_array(strtolower($value), ['model', 'repo', 'api', 'all']);
-				},
+				$validationFuncs['type'],
 				function ($value) {
 					return trim(strtolower($value));
 				}
 			);
 
-			$ch->putLine('You selected: ' . $type->getResults()[0]);
+			if ($type->isBad()) {
+				$ch->putLine();
+				$ch->putLine('Aborting script execution, invalid type specified. Valid types are: model, repo, api, all');
+
+				exit;
+			}
 
 			return $ret;
 		}
