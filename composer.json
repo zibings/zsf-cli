@@ -17,6 +17,8 @@
 			"Zsf\\Utils\\SchemaReader\\": "./Zsf/Utils/SchemaReader"
 		},
 		"files": [
+			"scripts/generate.script.php",
+			"scripts/scaffold.script.php",
 			"scripts/version.script.php",
 			"Zsf/Utils/CliFunctions.php"
 		]
