@@ -39,20 +39,20 @@
 		}
 
 		/**
-		 * Fetches the columns for the specified database.
-		 *
-		 * @param string $dbName
-		 * @return array
-		 */
-		abstract public function fetchColumns(string $dbName) : array;
-
-		/**
 		 * Fetches all columns for any tables found in the schema.
 		 *
 		 * @param string $schemaName
 		 * @return array
 		 */
 		abstract public function fetchAllTableColumns(string $schemaName) : array;
+
+		/**
+		 * Fetches the columns for the specified table.
+		 *
+		 * @param string $tableName
+		 * @return array
+		 */
+		abstract public function fetchTableColumns(string $tableName) : array;
 
 		/**
 		 * Returns the driver used by the schema reader.
