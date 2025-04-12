@@ -4,13 +4,75 @@
 
 	use AndyM84\Config\ConfigContainer;
 
+	use Stoic\Pdo\PdoHelper;
 	use Stoic\Utilities\ConsoleHelper;
 	use Stoic\Utilities\FileHelper;
 
 	use Zsf\Utils\ZsfCliScript;
 
+	class ScaffoldArguments {
+		public static function fromArray(array $input) : ScaffoldArguments {
+			return new ScaffoldArguments(
+				$input['db'],
+				$input['interactive'],
+				$input['namespace'],
+				$input['overwrite'],
+				$input['table'],
+				$input['type'],
+				$input['connection']
+			);
+		}
+
+
+		public function __construct(
+			public string $db,
+			public bool $interactive,
+			public string $namespace,
+			public bool $overwrite,
+			public string $table,
+			public string $type,
+			public string $connection
+		) {
+			return;
+		}
+	}
+
 	class ScaffoldScript implements ZsfCliScript {
-		public function __getInput(ConsoleHelper $ch) : array {
+		public function __getDb(ScaffoldArguments $args, ConsoleHelper $ch, ConfigContainer $config) : PdoHelper {
+			if ($config->has('dbDsn')) {
+				$dsn = $config->get('dbDsn');
+				$user = $config->get('dbUser');
+				$pass = $config->get('dbPass');
+
+				return new PdoHelper($dsn, $user, $pass);
+			}
+
+			$key = $args->connection ?? 'default';
+
+			foreach ($config->getSettings() as $key => $value) {
+				if (str_starts_with($key, 'dbDsns.') === false) {
+					continue;
+				}
+
+				$dbSetKey = str_replace('dbDsns.', '', $key);
+
+				if ($dbSetKey !== $key) {
+					continue;
+				}
+
+				return new PdoHelper(
+					$value,
+					$config->get('dbUsers.' . $dbSetKey),
+					$config->get('dbPasses.' . $dbSetKey)
+				);
+			}
+
+			$ch->putLine('Aborting script execution, no connection information found for key: ' . $key);
+
+			exit;
+		}
+
+		public function __getInput(ConsoleHelper $ch) : ScaffoldArguments {
 			$ret = [
 				'db'          => $ch->getParameterWithDefault('db', 'database', '', true),
 				'interactive' => $ch->getParameterWithDefault('ni', 'non-interactive', false, true),
@@ -18,6 +80,7 @@
 				'overwrite'   => $ch->hasShortLongArg('no', 'no-overwrite', true),
 				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
+				'connection'  => $ch->getParameterWithDefault('c', 'connection', null, true),
 			];
 
 			$validationFuncs = [
@@ -31,7 +94,7 @@
 					return in_array(strtolower($value), ['database', 'table']);
 				},
 				'yesno'  => function (mixed $value) : bool {
-					return in_array(strtolower($value), ['yes', 'no']);
+					return in_array(strtolower($value), ['yes', 'no', 'y', 'n']);
 				}
 			];
 
@@ -60,7 +123,7 @@
 					exit;
 				}
 
-				return $ret;
+				return ScaffoldArguments::fromArray($ret);
 			}
 
 			$maxTries = 3;
@@ -101,7 +164,7 @@
 
 			$source = $source->getResults()[0];
 
-			if ($source === 'table') {
+			if ($source == 'table') {
 				$table = $ch->getQueriedInput(
 					'Please enter a table name',
 					null,
@@ -139,6 +202,17 @@
 				$ret['db'] = $db->getResults()[0];
 			}
 
+			$connection = $ch->getQueriedInput(
+				'Enter a db connection key',
+				null,
+				'Invalid connection key specified',
+				1,
+				function () { return true; },
+				$sanitationFuncs['trimAndLower']
+			);
+
+			$ret['connection'] = $connection->getResults()[0];
+
 			$namespace = $ch->getQueriedInput(
 				'Please enter a namespace for the generated files',
 				null,
@@ -173,9 +247,9 @@
 				exit;
 			}
 
-			$ret['overwrite'] = $overwrite->getResults()[0] === 'yes';
+			$ret['overwrite'] = $overwrite->getResults()[0] == 'yes' || $overwrite->getResults()[0] == 'y';
 
-			return $ret;
+			return ScaffoldArguments::fromArray($ret);
 		}
 
 		public function help() : string {
@@ -211,6 +285,7 @@ HELP_TEXT;
 			$ch->putLine('  Table:       ' . $input['table']);
 			$ch->putLine('  Database:    ' . $input['db']);
 			$ch->putLine('  Namespace:   ' . $input['namespace']);
+			$ch->putLine('  Connection:  ' . $input['connection']);
 			$ch->putLine('  Overwrite:   ' . ($input['overwrite'] ? 'true' : 'false'));
 			$ch->putLine('  Interactive: ' . ($input['interactive'] ? 'true' : 'false'));
 			$ch->putLine();
