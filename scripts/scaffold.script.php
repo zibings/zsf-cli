@@ -11,6 +11,12 @@
 	use Zsf\Utils\ZsfCliScript;
 
 	class ScaffoldArguments {
+		/**
+		 * Create a ScaffoldArguments object from an array of input values.
+		 *
+		 * @param array $input
+		 * @return ScaffoldArguments
+		 */
 		public static function fromArray(array $input) : ScaffoldArguments {
 			return new ScaffoldArguments(
 				$input['db'],
@@ -24,6 +30,17 @@
 		}
 
 
+		/**
+		 * Instantiates a ScaffoldArguments object with the provided parameters.
+		 *
+		 * @param string $db
+		 * @param bool $interactive
+		 * @param string $namespace
+		 * @param bool $overwrite
+		 * @param string $table
+		 * @param string $type
+		 * @param string $connection
+		 */
 		public function __construct(
 			public string $db,
 			public bool $interactive,
@@ -31,7 +48,7 @@
 			public bool $overwrite,
 			public string $table,
 			public string $type,
-			public string $connection
+			public null|string $connection
 		) {
 			return;
 		}
@@ -59,19 +76,19 @@
 
 			$key = $args->connection ?? 'default';
 
-			foreach ($config->getSettings() as $key => $value) {
-				if (str_starts_with($key, 'dbDsns.') === false) {
+			foreach ($config->getSettings() as $settingsKey => $settingsValue) {
+				if (str_starts_with($settingsKey, 'dbDsns.') === false) {
 					continue;
 				}
 
-				$dbSetKey = str_replace('dbDsns.', '', $key);
+				$dbSetKey = str_replace('dbDsns.', '', $settingsKey);
 
 				if ($dbSetKey !== $key) {
 					continue;
 				}
 
 				return new PdoHelper(
-					$value,
+					$settingsValue,
 					$config->get('dbUsers.' . $dbSetKey),
 					$config->get('dbPasses.' . $dbSetKey),
 					[
@@ -296,14 +313,50 @@ HELP_TEXT;
 			$input = $this->__getInput($ch);
 
 			$ch->putLine('Input:');
-			$ch->putLine('  Type:        ' . $input['type']);
-			$ch->putLine('  Table:       ' . $input['table']);
-			$ch->putLine('  Database:    ' . $input['db']);
-			$ch->putLine('  Namespace:   ' . $input['namespace']);
-			$ch->putLine('  Connection:  ' . $input['connection']);
-			$ch->putLine('  Overwrite:   ' . ($input['overwrite'] ? 'true' : 'false'));
-			$ch->putLine('  Interactive: ' . ($input['interactive'] ? 'true' : 'false'));
+			$ch->putLine('  Type:        ' . $input->type);
+			$ch->putLine('  Table:       ' . $input->table ?? 'N/A');
+			$ch->putLine('  Database:    ' . $input->db ?? 'N/A');
+			$ch->putLine('  Namespace:   ' . $input->namespace);
+			$ch->putLine('  Connection:  ' . $input->connection ?? 'N/A');
+			$ch->putLine('  Overwrite:   ' . ($input->overwrite ? 'true' : 'false'));
+			$ch->putLine('  Interactive: ' . ($input->interactive ? 'true' : 'false'));
 			$ch->putLine();
+
+			$db = $this->__getDb($input, $ch, $config);
+
+			$ch->putLine('Database connection established');
+			$ch->putLine('  DSN:         ' . $db->dsn);
+
+			try {
+				$reader = new \Zsf\Utils\SchemaReader\MySQL($db);
+
+				$reader->parseTableColumns('User', 'pgm');
+
+				foreach ($reader->tables as $table => $columns) {
+					$ch->putLine('Table: ' . $table);
+					$ch->putLine('Columns:');
+
+					foreach ($columns as $column) {
+						$ch->putLine('  ' . $column->getName());
+						$ch->putLine('    Type: ' . $column->getType()->__toString());
+						$ch->putLine('    Flags:');
+
+						$flags = [];
+
+						foreach ($column->getFlags() as $flag) {
+							$flags[] = $flag->__toString();
+						}
+
+						$ch->putLine('      ' . implode(', ', $flags));
+						$ch->putLine();
+					}
+				}
+			} catch (\Exception $e) {
+				$ch->putLine('Error: ' . $e->getMessage());
+				$ch->putLine('Aborting script execution, unable to connect to database');
+
+				exit;
+			}
 
 			return;
 		}
