@@ -44,7 +44,17 @@
 				$user = $config->get('dbUser');
 				$pass = $config->get('dbPass');
 
-				return new PdoHelper($dsn, $user, $pass);
+				// modify the following line to have exceptions
+				return new PdoHelper(
+					$dsn,
+					$user,
+					$pass,
+					[
+						\PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+						\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+						\PDO::ATTR_EMULATE_PREPARES   => false,
+					]
+				);
 			}
 
 			$key = $args->connection ?? 'default';
@@ -63,7 +73,12 @@
 				return new PdoHelper(
 					$value,
 					$config->get('dbUsers.' . $dbSetKey),
-					$config->get('dbPasses.' . $dbSetKey)
+					$config->get('dbPasses.' . $dbSetKey),
+					[
+						\PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+						\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+						\PDO::ATTR_EMULATE_PREPARES   => false,
+					]
 				);
 			}
 
