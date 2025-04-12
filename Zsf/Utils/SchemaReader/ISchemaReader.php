@@ -13,6 +13,7 @@
 	 */
 	abstract class ISchemaReader {
 		protected PdoDrivers $driver;
+		public array $tables = [];
 
 
 		/**
@@ -39,22 +40,6 @@
 		}
 
 		/**
-		 * Fetches all columns for any tables found in the schema.
-		 *
-		 * @param string $schemaName
-		 * @return array
-		 */
-		abstract public function fetchAllTableColumns(string $schemaName) : array;
-
-		/**
-		 * Fetches the columns for the specified table.
-		 *
-		 * @param string $tableName
-		 * @return array
-		 */
-		abstract public function fetchTableColumns(string $tableName) : array;
-
-		/**
 		 * Returns the driver used by the schema reader.
 		 *
 		 * @return PdoDrivers
@@ -62,6 +47,22 @@
 		public function getDriver() : PdoDrivers {
 			return $this->driver;
 		}
+
+		/**
+		 * Fetches all columns for any tables found in the schema and parses their data.
+		 *
+		 * @param string $schemaName
+		 * @return array
+		 */
+		abstract public function parseAllTableColumns(string $schemaName) : void;
+
+		/**
+		 * Fetches the columns for the specified table and parses its data.
+		 *
+		 * @param string $tableName
+		 * @return array
+		 */
+		abstract public function parseTableColumns(string $tableName) : void;
 
 		/**
 		 * Internal method to set schema reader's driver.
