@@ -74,7 +74,11 @@
 				);
 			}
 
-			$key = $args->connection ?? 'default';
+			$key = $args->connection;
+
+			if (empty($key)) {
+				$key = 'default';
+			}
 
 			foreach ($config->getSettings() as $settingsKey => $settingsValue) {
 				if (str_starts_with($settingsKey, 'dbDsns.') === false) {
@@ -131,8 +135,20 @@
 			];
 
 			$sanitationFuncs = [
-				'trimAndLower' => function (mixed $value) : string {
+				'trim'         => function (mixed $value) : string {
 					return trim($value);
+				},
+				'trimAndLower' => function (mixed $value) : string {
+					return strtolower(trim($value));
+				},
+				'yesno'        => function (mixed $value) : string {
+					$value = strtolower(trim($value));
+
+					if ($value == 'yes' || $value == 'y') {
+						return 'yes';
+					}
+
+					return 'no';
 				}
 			];
 
@@ -145,6 +161,12 @@
 
 				if (empty($ret['db']) && empty($ret['table'])) {
 					$ch->putLine('Aborting script execution, no source specified. Must include either `database` or `table` source name');
+
+					exit;
+				}
+
+				if (!empty($ret['table']) && empty($ret['db'])) {
+					$ch->putLine('Aborting script execution, no database specified. Must include a database name if using a table source');
 
 					exit;
 				}
@@ -178,13 +200,31 @@
 
 			$ret['type'] = $type->getResults()[0];
 
-			$source = $ch->getQueriedInput(
-				'Would you like to generate from a database or a table?',
-				'database, table',
-				'Invalid source specified. Valid sources are: database, table',
+			$db = $ch->getQueriedInput(
+				'Please enter a database name',
+				null,
+				'Invalid database name specified',
 				$maxTries,
-				$validationFuncs['source'],
-				$sanitationFuncs['trimAndLower']
+				$validationFuncs['empty'],
+				$sanitationFuncs['trim']
+			);
+
+			if ($db->isBad()) {
+				$ch->putLine();
+				$ch->putLine('Aborting script execution, invalid database name specified');
+
+				exit;
+			}
+
+			$ret['db'] = $db->getResults()[0];
+
+			$source = $ch->getQueriedInput(
+				'Would you like to generate from a specific table?',
+				'(y)es, (n)o',
+				'Invalid input specified. Valid inputs are: yes, no, y, or n',
+				$maxTries,
+				$validationFuncs['yesno'],
+				$sanitationFuncs['yesno']
 			);
 
 			if ($source->isBad()) {
@@ -196,14 +236,14 @@
 
 			$source = $source->getResults()[0];
 
-			if ($source == 'table') {
+			if ($source == 'yes') {
 				$table = $ch->getQueriedInput(
 					'Please enter a table name',
 					null,
 					'Invalid table name specified',
 					$maxTries,
 					$validationFuncs['empty'],
-					$sanitationFuncs['trimAndLower']
+					$sanitationFuncs['trim']
 				);
 
 				if ($table->isBad()) {
@@ -214,24 +254,6 @@
 				}
 
 				$ret['table'] = $table->getResults()[0];
-			} else {
-				$db = $ch->getQueriedInput(
-					'Please enter a database name',
-					null,
-					'Invalid database name specified',
-					$maxTries,
-					$validationFuncs['empty'],
-					$sanitationFuncs['trimAndLower']
-				);
-
-				if ($db->isBad()) {
-					$ch->putLine();
-					$ch->putLine('Aborting script execution, invalid database name specified');
-
-					exit;
-				}
-
-				$ret['db'] = $db->getResults()[0];
 			}
 
 			$connection = $ch->getQueriedInput(
@@ -265,11 +287,11 @@
 
 			$overwrite = $ch->getQueriedInput(
 				'Would you like to overwrite existing files?',
-				'yes, no',
-				'Invalid input specified. Valid inputs are: yes, no',
+				'(y)es, (n)o',
+				'Invalid input specified. Valid inputs are: yes, no, y, or n',
 				$maxTries,
 				$validationFuncs['yesno'],
-				$sanitationFuncs['trimAndLower']
+				$sanitationFuncs['yesno']
 			);
 
 			if ($overwrite->isBad()) {
@@ -288,9 +310,15 @@
 			return <<< HELP_TEXT
 ZSF CLI Scaffolding Script
 --------------------------
+{$this->helpInternal()}
+HELP_TEXT;
+		}
+
+		public function helpInternal() : string {
+			return <<< HELP_TEXT
 Description:           Generate scaffold file(s) from a database or database tables
 Interactive Usage:     vendor/bin/zsf-cli scaffold
-Non-Interactive Usage: vendor/bin/zsf-cli scaffold --type=model --table=table_name --namespace=namespace
+Non-Interactive Usage: vendor/bin/zsf-cli scaffold --type=model --db=db_name --table=table_name --namespace=namespace
                        vendor/bin/zsf-cli scaffold --type=repo --db=db_name --namespace=namespace
                        vendor/bin/zsf-cli scaffold --type=api --db=db_name --no-overwrite --namespace=namespace
                        vendor/bin/zsf-cli scaffold --type=all --db=db_name --namespace=namespace
@@ -309,6 +337,12 @@ HELP_TEXT;
 			$ch->putLine('ZSF Scaffolding Script');
 			$ch->putLine('----------------------');
 			$ch->putLine();
+
+			if ($ch->hasShortLongArg('help', 'h')) {
+				$ch->putLine($this->helpInternal());
+
+				return;
+			}
 
 			$input = $this->__getInput($ch);
 
@@ -330,7 +364,7 @@ HELP_TEXT;
 			try {
 				$reader = new \Zsf\Utils\SchemaReader\MySQL($db);
 
-				$reader->parseTableColumns('User', 'pgm');
+				$reader->parseTableColumns($input->table, $input->db);
 
 				foreach ($reader->tables as $table => $columns) {
 					$ch->putLine('Table: ' . $table);
