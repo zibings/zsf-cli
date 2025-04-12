@@ -3,8 +3,70 @@
 	namespace Zsf\Utils\SchemaReader;
 
 	use Stoic\Log\Logger;
+	use Stoic\Pdo\BaseDbColumnFlags;
+	use Stoic\Pdo\BaseDbTypes;
 	use Stoic\Pdo\PdoDrivers;
 	use Stoic\Pdo\PdoHelper;
+
+	class MySQLColumn extends ISchemaColumn {
+		/**
+		 * Returns all appropriate flags for the column.
+		 *
+		 * @return BaseDbColumnFlags[]
+		 */
+		public function getFlags() : array {
+			return $this->flags;
+		}
+
+		/**
+		 * Returns the name of the column.
+		 *
+		 * @return string
+		 */
+		public function getName() : string {
+			return $this->data['name'] ?? '!!ERROR!!';
+		}
+
+		/**
+		 * Returns the Stoic base db type for the column.
+		 *
+		 * @return BaseDbTypes
+		 */
+		public function getType() : BaseDbTypes {
+			return $this->type;
+		}
+
+		/**
+		 * Internal method to parse the column data.
+		 *
+		 * @return void
+		 */
+		protected function parseColumn() : void {
+			if (isset($this->data['type'])) {
+				$this->type = match ($this->data['type']) {
+					'int'   => new BaseDbTypes(BaseDbTypes::INTEGER),
+					default => new BaseDbTypes(BaseDbTypes::STRING),
+				};
+			}
+
+			if (isset($this->data['key']) && $this->data['key'] === 'PRI') {
+				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::IS_KEY);
+			}
+
+			if (isset($this->data['nullable']) && $this->data['nullable'] === 'NO') {
+				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::ALLOWS_NULLS);
+			}
+
+			if (isset($this->data['extra']) && str_contains($this->data['extra'], 'auto_increment')) {
+				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::AUTO_INCREMENT);
+			} else {
+				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::SHOULD_INSERT);
+				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::SHOULD_UPDATE);
+			}
+
+			return;
+		}
+	}
 
 	/**
 	 * Class for reading MySQL schema information.
@@ -28,63 +90,84 @@
 		}
 
 		/**
-		 * Fetches the columns for the specified database.
-		 *
-		 * @param string $dbName
-		 * @return array
-		 */
-		public function fetchColumns(string $dbName) : array {
-			return [];
-		}
-
-		/**
-		 * Fetches all columns for any tables found in the schema.
+		 * Fetches all columns for any tables found in the schema and parses their data.
 		 *
 		 * @param string $schemaName
 		 * @return array
 		 */
-		public function fetchAllTableColumns(string $schemaName) : array {
+		public function parseAllTableColumns(string $schemaName) : void {
 			if (!$this->db->isActive()) {
-				return [];
+				return;
 			}
 
-			$columns      = [];
-			$currentTable = null;
+			$columns = [];
 
 			try {
-				$tblStmt = $this->db->prepare("SELECT `TABLE_NAME`, `COLUMN_NAME`, `DATA_TYPE`, `COLUMN_KEY`, `IS_NULLABLE`, `EXTRA` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = :schemaName");
-				$tblStmt->bindValue(':schemaName', $schemaName);
+				$stmt = $this->db->prepare("SELECT `TABLE_NAME`, `COLUMN_NAME`, `DATA_TYPE`, `COLUMN_KEY`, `IS_NULLABLE`, `EXTRA` FROM INFORMATION_SCHEMA.COLUMNS WHERE `TABLE_SCHEMA` = :schemaName ORDER BY `TABLE_NAME`");
+				$stmt->bindValue(':schemaName', $schemaName);
 
-				if ($tblStmt->execute() && $tblStmt->rowCount() > 0) {
-					while ($tableRow = $tblStmt->fetch(\PDO::FETCH_ASSOC)) {
-						if ($tableRow['TABLE_NAME'] !== $currentTable) {
-							$currentTable           = $tableRow['TABLE_NAME'];
-							$columns[$currentTable] = [];
+				if ($stmt->execute() && $stmt->rowCount() > 0) {
+					while ($tableRow = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+						$table = $tableRow['TABLE_NAME'];
+
+						if (array_key_exists($table, $columns) === false) {
+							$columns[$table] = [];
 						}
 
-						$columns[$currentTable][] = [
+						$columns[$table][] = new MySQLColumn([
 							'name'     => $tableRow['COLUMN_NAME'],
 							'type'     => $tableRow['DATA_TYPE'],
 							'key'      => $tableRow['COLUMN_KEY'],
 							'nullable' => $tableRow['IS_NULLABLE'],
 							'extra'    => $tableRow['EXTRA']
-						];
-
-						$this->log->info(sprintf(
-							"%-12s | %-12s | %-10s | %-8s | %-4s | %s",
-							$tableRow['TABLE_NAME'],
-							$tableRow['COLUMN_NAME'],
-							$tableRow['DATA_TYPE'],
-							$tableRow['IS_NULLABLE'],
-							$tableRow['COLUMN_KEY'],
-							$tableRow['EXTRA']
-						));
+						]);
 					}
+
+					$this->tables = $columns;
 				}
 			} catch (\PDOException $e) {
 				$this->log->error("Failed to fetch columns for schema '{$schemaName}': " . $e->getMessage());
 			}
 
-			return $columns;
+			return;
+		}
+
+		/**
+		 * Fetches the columns for the specified table and parses its data.
+		 *
+		 * @param string $tableName
+		 * @return array
+		 */
+		public function parseTableColumns(string $tableName) : void {
+			if (!$this->db->isActive()) {
+				return;
+			}
+
+			$columns = [];
+
+			try {
+				$stmt = $this->db->prepare("SELECT `COLUMN_NAME`, `DATA_TYPE`, `COLUMN_KEY`, `IS_NULLABLE`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_NAME` = :tableName");
+				$stmt->bindValue(':tableName', $tableName);
+
+				if ($stmt->execute() && $stmt->rowCount() > 0) {
+					while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+						$columns[] = new MySQLColumn([
+							'name'     => $row['COLUMN_NAME'],
+							'type'     => $row['DATA_TYPE'],
+							'key'      => $row['COLUMN_KEY'],
+							'nullable' => $row['IS_NULLABLE'],
+							'extra'    => $row['EXTRA']
+						]);
+					}
+				}
+
+				if (count($columns) > 0) {
+					$this->tables[$tableName] = $columns;
+				}
+			} catch (\PDOException $e) {
+				$this->log->error("Failed to fetch columns for table '{$tableName}': " . $e->getMessage());
+			}
+
+			return;
 		}
 	}
