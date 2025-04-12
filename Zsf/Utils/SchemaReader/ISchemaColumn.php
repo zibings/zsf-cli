@@ -36,6 +36,15 @@
 		abstract public function getFlags() : array;
 
 		/**
+		 * Returns the name of the column.
+		 *
+		 * @return string
+		 */
+		public function getName() : string {
+			return $this->data['name'] ?? '!!ERROR!!';
+		}
+
+		/**
 		 * Returns the Stoic base db type for the column.
 		 *
 		 * @return BaseDbTypes
