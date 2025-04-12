@@ -93,7 +93,7 @@
 		 * Fetches all columns for any tables found in the schema and parses their data.
 		 *
 		 * @param string $schemaName
-		 * @return array
+		 * @return void
 		 */
 		public function parseAllTableColumns(string $schemaName) : void {
 			if (!$this->db->isActive()) {
@@ -136,9 +136,10 @@
 		 * Fetches the columns for the specified table and parses its data.
 		 *
 		 * @param string $tableName
-		 * @return array
+		 * @param string $schemaName
+		 * @return void
 		 */
-		public function parseTableColumns(string $tableName) : void {
+		public function parseTableColumns(string $tableName, string $schemaName = '') : void {
 			if (!$this->db->isActive()) {
 				return;
 			}
@@ -146,8 +147,18 @@
 			$columns = [];
 
 			try {
-				$stmt = $this->db->prepare("SELECT `COLUMN_NAME`, `DATA_TYPE`, `COLUMN_KEY`, `IS_NULLABLE`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_NAME` = :tableName");
+				$sql = "SELECT `COLUMN_NAME`, `DATA_TYPE`, `COLUMN_KEY`, `IS_NULLABLE`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_NAME` = :tableName";
+
+				if ($schemaName !== '') {
+					$sql .= " AND `TABLE_SCHEMA` = :schemaName";
+				}
+
+				$stmt = $this->db->prepare($sql);
 				$stmt->bindValue(':tableName', $tableName);
+
+				if ($schemaName !== '') {
+					$stmt->bindValue(':schemaName', $schemaName);
+				}
 
 				if ($stmt->execute() && $stmt->rowCount() > 0) {
 					while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {

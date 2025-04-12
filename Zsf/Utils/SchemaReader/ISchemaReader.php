@@ -52,7 +52,7 @@
 		 * Fetches all columns for any tables found in the schema and parses their data.
 		 *
 		 * @param string $schemaName
-		 * @return array
+		 * @return void
 		 */
 		abstract public function parseAllTableColumns(string $schemaName) : void;
 
@@ -60,9 +60,10 @@
 		 * Fetches the columns for the specified table and parses its data.
 		 *
 		 * @param string $tableName
-		 * @return array
+		 * @param string $schemaName
+		 * @return void
 		 */
-		abstract public function parseTableColumns(string $tableName) : void;
+		abstract public function parseTableColumns(string $tableName, string $schemaName = '') : void;
 
 		/**
 		 * Internal method to set schema reader's driver.
