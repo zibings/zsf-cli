@@ -39,7 +39,7 @@
 		 * @param bool $overwrite
 		 * @param string $table
 		 * @param string $type
-		 * @param string $connection
+		 * @param null|string $connection
 		 */
 		public function __construct(
 			public string $db,
