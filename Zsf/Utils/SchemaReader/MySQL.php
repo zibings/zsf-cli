@@ -28,12 +28,21 @@
 		}
 
 		/**
-		 * Returns the Stoic base db type for the column.
+		 * Returns the Stoic base model type for the column.
 		 *
 		 * @return BaseDbTypes
 		 */
-		public function getType() : BaseDbTypes {
-			return $this->type;
+		public function getModelType() : BaseDbTypes {
+			return $this->modelType;
+		}
+
+		/**
+		 * Returns the PHP type for the column.
+		 *
+		 * @return string
+		 */
+		public function getPhpType() : string {
+			return $this->phpType;
 		}
 
 		/**
@@ -43,9 +52,17 @@
 		 */
 		protected function parseColumn() : void {
 			if (isset($this->data['type'])) {
-				$this->type = match ($this->data['type']) {
+				$this->modelType = match ($this->data['type']) {
 					'int'   => new BaseDbTypes(BaseDbTypes::INTEGER),
 					default => new BaseDbTypes(BaseDbTypes::STRING),
+				};
+
+				$this->phpType = match ($this->data['type']) {
+					'int',     'tinyint',  'bigint'    => 'int',
+					'float',   'double',   'decimal'   => 'float',
+					'date',    'datetime', 'timestamp' => '\DateTimeInterface',
+					'bool',    'boolean'               => 'bool',
+					default                            => 'string',
 				};
 			}
 
