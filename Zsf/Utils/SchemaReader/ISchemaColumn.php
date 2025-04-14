@@ -12,7 +12,8 @@
 	 */
 	abstract class ISchemaColumn {
 		protected array $flags = [];
-		protected BaseDbTypes $type;
+		protected BaseDbTypes $modelType;
+		protected string $phpType;
 
 
 		/**
@@ -45,11 +46,18 @@
 		}
 
 		/**
-		 * Returns the Stoic base db type for the column.
+		 * Returns the Stoic base model type for the column.
 		 *
 		 * @return BaseDbTypes
 		 */
-		abstract public function getType() : BaseDbTypes;
+		abstract public function getModelType() : BaseDbTypes;
+
+		/**
+		 * Returns the PHP type for the column.
+		 *
+		 * @return string
+		 */
+		abstract public function getPhpType() : string;
 
 		/**
 		 * Internal method to parse the column data.
