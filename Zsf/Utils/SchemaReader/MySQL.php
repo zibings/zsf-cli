@@ -53,8 +53,10 @@
 		protected function parseColumn() : void {
 			if (isset($this->data['type'])) {
 				$this->modelType = match ($this->data['type']) {
-					'int'   => new BaseDbTypes(BaseDbTypes::INTEGER),
-					default => new BaseDbTypes(BaseDbTypes::STRING),
+					'int',     'tinyint',  'bigint'    => new BaseDbTypes(BaseDbTypes::INTEGER),
+					'date',    'datetime', 'timestamp' => new BaseDbTypes(BaseDbTypes::DATETIME),
+					'bool',    'boolean'               => new BaseDbTypes(BaseDbTypes::BOOLEAN),
+					default                            => new BaseDbTypes(BaseDbTypes::STRING),
 				};
 
 				$this->phpType = match ($this->data['type']) {
