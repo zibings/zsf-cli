@@ -353,10 +353,16 @@ HELP_TEXT;
 			$ch->putLine('  Namespace:   ' . $input->namespace);
 			$ch->putLine('  Connection:  ' . $input->connection ?? 'N/A');
 			$ch->putLine('  Overwrite:   ' . ($input->overwrite ? 'true' : 'false'));
-			$ch->putLine('  Interactive: ' . ($input->interactive ? 'true' : 'false'));
+			$ch->putLine('  Interactive: ' . (!$input->interactive ? 'true' : 'false'));
 			$ch->putLine();
 
 			$db = $this->__getDb($input, $ch, $config);
+
+			if ($db->isActive() === false) {
+				$ch->putLine('Aborting script execution, unable to connect to database');
+
+				return;
+			}
 
 			$ch->putLine('Database connection established');
 			$ch->putLine('  DSN:         ' . $db->dsn);
@@ -364,7 +370,13 @@ HELP_TEXT;
 			try {
 				$reader = new \Zsf\Utils\SchemaReader\MySQL($db);
 
-				$reader->parseTableColumns($input->table, $input->db);
+				if (!empty($input->table)) {
+					$reader->parseTableColumns($input->table, $input->db);
+				} else {
+					$reader->parseAllTableColumns($input->db);
+				}
+
+				$ch->putLine();
 
 				foreach ($reader->tables as $table => $columns) {
 					$ch->putLine('Table: ' . $table);
@@ -372,7 +384,7 @@ HELP_TEXT;
 
 					foreach ($columns as $column) {
 						$ch->putLine('  ' . $column->getName());
-						$ch->putLine('    Type: ' . $column->getType()->__toString());
+						$ch->putLine('    Type: ' . $column->getPhpType() . ' (' . $column->getModelType() . ')');
 						$ch->putLine('    Flags:');
 
 						$flags = [];
