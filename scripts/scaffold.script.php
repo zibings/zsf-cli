@@ -399,7 +399,6 @@ HELP_TEXT;
 				}
 			} catch (\Exception $e) {
 				$ch->putLine('Error: ' . $e->getMessage());
-				$ch->putLine('Aborting script execution, unable to connect to database');
 
 				exit;
 			}
