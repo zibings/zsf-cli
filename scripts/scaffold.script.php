@@ -4,10 +4,14 @@
 
 	use AndyM84\Config\ConfigContainer;
 
+	use Stoic\Pdo\PdoDrivers;
 	use Stoic\Pdo\PdoHelper;
 	use Stoic\Utilities\ConsoleHelper;
 	use Stoic\Utilities\FileHelper;
 
+	use Zsf\Utils\SchemaReader\MySQL;
+	use Zsf\Utils\SchemaReader\Postgres;
+	use Zsf\Utils\SchemaReader\SqlServer;
 	use Zsf\Utils\ZsfCliScript;
 
 	class ScaffoldArguments {
@@ -367,8 +371,23 @@ HELP_TEXT;
 			$ch->putLine('Database connection established');
 			$ch->putLine('  DSN:         ' . $db->dsn);
 
+			$driver = match ($db->getDriver()->getValue()) {
+				PdoDrivers::PDO_MSSQL, PdoDrivers::PDO_SQLSRV => SqlServer::class,
+				PdoDrivers::PDO_MYSQL => MySQL::class,
+				PdoDrivers::PDO_PGSQL => Postgres::class,
+				default => null,
+			};
+
+			if ($driver === null) {
+				$ch->putLine();
+				$ch->putLine('Aborting script execution, unsupported database driver: ' . $db->getDriver()->jsonSerialize());
+				$ch->putLine();
+
+				return;
+			}
+
 			try {
-				$reader = new \Zsf\Utils\SchemaReader\MySQL($db);
+				$reader = new $driver($db);
 
 				if (!empty($input->table)) {
 					$reader->parseTableColumns($input->table, $input->db);
