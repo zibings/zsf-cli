@@ -9,9 +9,9 @@
 	use Stoic\Utilities\ConsoleHelper;
 	use Stoic\Utilities\FileHelper;
 
-	use Zsf\Utils\SchemaReader\MySQL;
-	use Zsf\Utils\SchemaReader\Postgres;
-	use Zsf\Utils\SchemaReader\SqlServer;
+	use Zsf\Utils\SchemaReader\MySQL as MySQLReader;
+	use Zsf\Utils\SchemaReader\Postgres as PostgresReader;
+	use Zsf\Utils\SchemaReader\SqlServer as SqlServerReader;
 	use Zsf\Utils\ZsfCliScript;
 
 	class ScaffoldArguments {
@@ -371,14 +371,14 @@ HELP_TEXT;
 			$ch->putLine('Database connection established');
 			$ch->putLine('  DSN:         ' . $db->dsn);
 
-			$driver = match ($db->getDriver()->getValue()) {
-				PdoDrivers::PDO_MSSQL, PdoDrivers::PDO_SQLSRV => SqlServer::class,
-				PdoDrivers::PDO_MYSQL => MySQL::class,
-				PdoDrivers::PDO_PGSQL => Postgres::class,
+			$readerDriver = match ($db->getDriver()->getValue()) {
+				PdoDrivers::PDO_MSSQL, PdoDrivers::PDO_SQLSRV => SqlServerReader::class,
+				PdoDrivers::PDO_MYSQL => MySQLReader::class,
+				PdoDrivers::PDO_PGSQL => PostgresReader::class,
 				default => null,
 			};
 
-			if ($driver === null) {
+			if ($readerDriver === null) {
 				$ch->putLine();
 				$ch->putLine('Aborting script execution, unsupported database driver: ' . $db->getDriver()->jsonSerialize());
 				$ch->putLine();
@@ -387,7 +387,7 @@ HELP_TEXT;
 			}
 
 			try {
-				$reader = new $driver($db);
+				$reader = new $readerDriver($db);
 
 				if (!empty($input->table)) {
 					$reader->parseTableColumns($input->table, $input->db);
@@ -398,7 +398,7 @@ HELP_TEXT;
 				$ch->putLine();
 
 				foreach ($reader->tables as $table => $columns) {
-					$ch->putLine('Table: ' . $table);
+					$ch->putLine('Generating Table File: ' . $table);
 					$ch->putLine('Columns:');
 
 					foreach ($columns as $column) {
