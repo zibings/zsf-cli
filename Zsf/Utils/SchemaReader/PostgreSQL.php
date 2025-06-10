@@ -72,7 +72,7 @@
 				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::IS_KEY);
 			}
 
-			if (isset($this->data['nullable']) && $this->data['nullable'] === 'NO') {
+			if (isset($this->data['nullable']) && $this->data['nullable'] !== 'NO') {
 				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::ALLOWS_NULLS);
 			}
 
@@ -128,8 +128,8 @@
                     a.attname AS \"COLUMN_NAME\",
                     pg_catalog.format_type(a.atttypid, a.atttypmod) AS \"DATA_TYPE\",
                     CASE 
-                        WHEN co.contype = 'p' THEN 'PK' 
-                        ELSE '' 
+                        WHEN co.contype = 'p' THEN 'PK'
+                        ELSE ''
                     END AS \"COLUMN_KEY\",
                     CASE 
                         WHEN a.attnotnull THEN 'NO' 
@@ -204,7 +204,7 @@
                     a.attname AS \"COLUMN_NAME\",
                     pg_catalog.format_type(a.atttypid, a.atttypmod) AS \"DATA_TYPE\",
                     CASE 
-                        WHEN co.contype = 'p' THEN 'PK' 
+                        WHEN co.contype = 'p' THEN 'PK'
                         ELSE '' 
                     END AS \"COLUMN_KEY\",
                     CASE 

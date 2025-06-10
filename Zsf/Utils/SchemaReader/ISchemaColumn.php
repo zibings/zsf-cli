@@ -32,7 +32,7 @@
 		/**
 		 * Returns all appropriate flags for the column.
 		 *
-		 * @return array
+		 * @return BaseDbColumnFlags[]
 		 */
 		abstract public function getFlags() : array;
 

@@ -4,6 +4,7 @@
 
 	use AndyM84\Config\ConfigContainer;
 
+	use Stoic\Pdo\BaseDbColumnFlags;
 	use Stoic\Pdo\PdoDrivers;
 	use Stoic\Pdo\PdoHelper;
 	use Stoic\Utilities\ConsoleHelper;
@@ -117,7 +118,7 @@
 				'db'          => $ch->getParameterWithDefault('db', 'database', '', true),
 				'interactive' => $ch->getParameterWithDefault('ni', 'non-interactive', false, true),
 				'namespace'   => $ch->getParameterWithDefault('ns', 'namespace', '', true),
-				'overwrite'   => $ch->hasShortLongArg('no', 'no-overwrite', true),
+				'overwrite'   => !$ch->hasShortLongArg('no', 'no-overwrite', true),
 				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
 				'connection'  => $ch->getParameterWithDefault('c', 'connection', null, true),
@@ -386,6 +387,45 @@ HELP_TEXT;
 				return;
 			}
 
+			$fileCreatePaths = [];
+			$baseCreatePath  = $fh->pathJoin($config->get('includePath'));
+
+			switch ($input->type) {
+				case 'model':
+					$fileCreatePaths['cls'] = $fh->pathJoin($baseCreatePath, $config->get('classesPath'), 'generated');
+
+					break;
+				case 'repo':
+					$fileCreatePaths['rpo'] = $fh->pathJoin($baseCreatePath, $config->get('reposPath'), 'generated');
+
+					break;
+				case 'api':
+					$fileCreatePaths['api'] = $fh->pathJoin($baseCreatePath, 'api', 'generated');
+
+					break;
+				case 'all':
+					$fileCreatePaths['cls'] = $fh->pathJoin($baseCreatePath, $config->get('classesPath'), 'generated');
+					$fileCreatePaths['rpo'] = $fh->pathJoin($baseCreatePath, $config->get('reposPath'), 'generated');
+					$fileCreatePaths['api'] = $fh->pathJoin($baseCreatePath, 'api', 'generated');
+
+					break;
+				default:
+					break;
+			}
+
+			if (count($fileCreatePaths) === 0) {
+				$ch->putLine('Aborting script execution, no file paths to create');
+
+				return;
+			}
+
+			foreach ($fileCreatePaths as $type => $path) {
+				if (!$fh->folderExists($path)) {
+					$fh->makeFolder($path, 0755, true);
+					$ch->putLine('Created directory: ' . $path);
+				}
+			}
+
 			try {
 				$reader = new $readerDriver($db);
 
@@ -398,22 +438,52 @@ HELP_TEXT;
 				$ch->putLine();
 
 				foreach ($reader->tables as $table => $columns) {
-					$ch->putLine('Generating Table File: ' . $table);
-					$ch->putLine('Columns:');
+					$ch->putLine('Generating Table Data: ' . $table);
+
+					$columnArgsStrings          = [];
+					$primaryKeys                = [];
+					$primaryKeyArgsStrings      = [];
+					$primaryKeyArgsWithTypes    = [];
+					$primaryKeyArgsWithoutTypes = [];
 
 					foreach ($columns as $column) {
-						$ch->putLine('  ' . $column->getName());
-						$ch->putLine('    Type: ' . $column->getPhpType() . ' (' . $column->getModelType() . ')');
-						$ch->putLine('    Flags:');
-
-						$flags = [];
+						$columnArgsStrings[] = "'" . $column->getName() . "'";
 
 						foreach ($column->getFlags() as $flag) {
-							$flags[] = $flag->__toString();
+							if ($flag->is(BaseDbColumnFlags::IS_KEY)) {
+								$primaryKeys[]                = $column;
+								$primaryKeyArgsWithoutTypes[] = $column->getName();
+								$primaryKeyArgsStrings[]      = "'" . $column->getName() . "'";
+								$primaryKeyArgsWithTypes[]    = $column->getPhpType() . " $" . $column->getName();
+							}
 						}
+					}
 
-						$ch->putLine('      ' . implode(', ', $flags));
-						$ch->putLine();
+					$tplData = [
+						'Namespace'               => $input->namespace,
+						'ClassName'               => $table,
+						'Columns'                 => $columns,
+						'ColumnArgsStrings'       => implode(", ", $columnArgsStrings),
+						'PrimaryKeys'             => $primaryKeys,
+						'PrimaryKeyArgsStrings'   => implode(", ", $primaryKeyArgsStrings),
+						'FromPrimaryKey'          => implode("_", $primaryKeyArgsWithoutTypes),
+						'PrimaryKeyArgs'          => implode(", ", $primaryKeyArgsWithoutTypes),
+						'PrimaryKeyArgsWithTypes' => implode(", ", $primaryKeyArgsWithTypes),
+					];
+
+					foreach ($fileCreatePaths as $type => $path) {
+						$ch->putLine('  Generating ' . $type . ' file...');
+
+						$engine     = new \League\Plates\Engine($fh->pathJoin('~/templates'));
+						$phpCode    = $engine->render($type, $tplData);
+						$outputPath = $fh->pathJoin($path, $table . '.' . $type . '.php');
+
+						if ($input->overwrite || !$fh->fileExists($outputPath)) {
+							$fh->putContents($outputPath, $phpCode);
+							$ch->putLine('    File created: ' . $outputPath);
+						} else {
+							$ch->putLine('    File already exists, skipping: ' . $outputPath);
+						}
 					}
 				}
 			} catch (\Exception $e) {

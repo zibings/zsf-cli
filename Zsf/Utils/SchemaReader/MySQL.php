@@ -72,7 +72,7 @@
 				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::IS_KEY);
 			}
 
-			if (isset($this->data['nullable']) && $this->data['nullable'] === 'NO') {
+			if (isset($this->data['nullable']) && $this->data['nullable'] !== 'NO') {
 				$this->flags[] = new BaseDbColumnFlags(BaseDbColumnFlags::ALLOWS_NULLS);
 			}
 

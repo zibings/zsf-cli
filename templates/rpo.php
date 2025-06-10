@@ -1,6 +1,7 @@
 <?= '<?php' ?>
 
-	namespace <?= '???' ?>;
+
+	namespace <?= $Namespace ?>;
 
 	class <?= $this->e($ClassName) ?>s extends StoicDbClass {
 		/**
@@ -16,10 +17,12 @@
 				while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
 					$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($Columns as $column): ?>
-					$entity-><?= $this->e($column->name) ?> = $row["<?= $this->e($column->name) ?>"];
+					$entity-><?= $this->e($column->getName()) ?> = $row["<?= $this->e($column->getName()) ?>"];
 <?php endforeach; ?>
 					$ret[] = $entity;
 				}
+
+				return;
 			}, "Failed to get all <?= $this->e($ClassName) ?>s");
 
 			return $ret;

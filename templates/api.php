@@ -1,5 +1,6 @@
 <?= '<?php' ?>
 
+
 	namespace <?= '???' ?>;  // Use short tag for namespace
 
 	use Stoic\Web\Api\Response;
@@ -23,14 +24,14 @@
 
 			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($Columns as $column): ?>
-<?php if ($column->type === 'string'): ?>
-			$entity-><?= $this->e($column->name) ?> = $params->getString("<?= $this->e($column->name) ?>");
-<?php elseif ($column->type === 'int'): ?>
-			$entity-><?= $this->e($column->name) ?> = $params->getInt("<?= $this->e($column->name) ?>");
-<?php elseif ($column->type === 'bool'): ?>
-			$entity-><?= $this->e($column->name) ?> = $params->getBool("<?= $this->e($column->name) ?>");
-<?php elseif ($column->type === 'float'): ?>
-			$entity-><?= $this->e($column->name) ?> = $params->getFloat("<?= $this->e($column->name) ?>");
+<?php if ($column->getPhpType() === 'string'): ?>
+			$entity-><?= $this->e($column->getName()) ?> = $params->getString("<?= $this->e($column->getName()) ?>");
+<?php elseif ($column->getPhpType() === 'int'): ?>
+			$entity-><?= $this->e($column->getName()) ?> = $params->getInt("<?= $this->e($column->getName()) ?>");
+<?php elseif ($column->getPhpType() === 'bool'): ?>
+			$entity-><?= $this->e($column->getName()) ?> = $params->getBool("<?= $this->e($column->getName()) ?>");
+<?php elseif ($column->getPhpType() === 'float'): ?>
+			$entity-><?= $this->e($column->getName()) ?> = $params->getFloat("<?= $this->e($column->getName()) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
 
@@ -61,14 +62,14 @@
 
 			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($PrimaryKeys as $pk): ?>
-<?php if ($pk->type === 'string'): ?>
-			$entity-><?= $this->e($pk->name) ?> = $params->getString("<?= $this->e($pk->name) ?>");
-<?php elseif ($pk->type === 'int'): ?>
-			$entity-><?= $this->e($pk->name) ?> = $params->getInt("<?= $this->e($pk->name) ?>");
-<?php elseif ($pk->type === 'bool'): ?>
-			$entity-><?= $this->e($pk->name) ?> = $params->getBool("<?= $this->e($pk->name) ?>");
-<?php elseif ($pk->type === 'float'): ?>
-			$entity-><?= $this->e($pk->name) ?> = $params->getFloat("<?= $this->e($pk->name) ?>");
+<?php if ($pk->getPhpType() === 'string'): ?>
+			$entity-><?= $this->e($pk->getName()) ?> = $params->getString("<?= $this->e($pk->getName()) ?>");
+<?php elseif ($pk->getPhpType() === 'int'): ?>
+			$entity-><?= $this->e($pk->getName()) ?> = $params->getInt("<?= $this->e($pk->getName()) ?>");
+<?php elseif ($pk->getPhpType() === 'bool'): ?>
+			$entity-><?= $this->e($pk->getName()) ?> = $params->getBool("<?= $this->e($pk->getName()) ?>");
+<?php elseif ($pk->getPhpType() === 'float'): ?>
+			$entity-><?= $this->e($pk->getName()) ?> = $params->getFloat("<?= $this->e($pk->getName()) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
 

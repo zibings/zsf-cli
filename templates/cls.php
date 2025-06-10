@@ -1,6 +1,7 @@
 <?= '<?php' ?>
 
-	namespace <?= '???' ?>;
+
+	namespace <?= $Namespace ?>;
 
 	use Stoic\Log\Logger;
 	use Stoic\Pdo\BaseDbTypes;
@@ -10,43 +11,40 @@
 
 	class <?= $this->e($ClassName) ?> extends StoicDbModel {
 <?php foreach ($Columns as $column): ?>
-		public <?= $this->e($column->type) ?> $<?= $this->e($column->name) ?>;
+		public <?= $this->e($column->getPhpType()) ?> $<?= $this->e($column->getName()) ?>;
 <?php endforeach; ?>
+
 
 		public static function from<?= $this->e($FromPrimaryKey) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>, PdoHelper $db, Logger $log = null): <?= $this->e($ClassName) ?> {
 			$ret = new <?= $this->e($ClassName) ?>($db, $log);
 <?php foreach ($PrimaryKeys as $pk): ?>
-			$ret-><?= $this->e($pk->name) ?> = $<?= $this->e($pk->name) ?>;
+			$ret-><?= $this->e($pk->getName()) ?> = $<?= $this->e($pk->getName()) ?>;
 <?php endforeach; ?>
 			$ret->read();
+
 			return $ret;
 		}
 
-<?php foreach ($UniqueKeys as $uk): ?>
-		public static function from<?= $this->e($uk->name) ?>(<?= $this->e($uk->type) ?> <?= "$" . $this->e($uk->name) ?>, PdoHelper $db, Logger $log = null): <?= $this->e($ClassName) ?> {
-			$ret = new <?= $this->e($ClassName) ?>($db, $log);
-			$ret-><?= $this->e($uk->name) ?> = $<?= $this->e($uk->name) ?>;
-			$ret->read();
-			return $ret;
-		}
-<?php endforeach; ?>
+
 		protected function __setupModel() : void {
 <?php foreach ($Columns as $column): ?>
-			$this->setColumn('<?= $this->e($column->name) ?>', '<?= $this->e($column->name) ?>', <?= $this->e($column->baseType) ?><?php if ($this->e($column->flagsToString) !== ""): ?>, <?= $this->e($column->flagsToString) ?><?php endif; ?>);
+			$this->setColumn('<?= $this->e($column->getName()) ?>', '<?= $this->e($column->getName()) ?>', BaseDbTypes::<?= $this->e($column->getModelType()) ?><?php if (count($column->getFlags()) > 0): ?>, BCF::<?= $this->e(implode(' | BCF::', $column->getFlags())) ?><?php endif; ?>);
 <?php endforeach; ?>
 
 <?php foreach ($Columns as $column): ?>
-<?php if ($column->type === 'string'): ?>
-			$this-><?= $this->e($column->name) ?> = "";
-<?php elseif ($column->type === 'int'): ?>
-			$this-><?= $this->e($column->name) ?> = 0;
-<?php elseif ($column->type === 'bool'): ?>
-			$this-><?= $this->e($column->name) ?> = false;
-<?php elseif ($column->type === 'float'): ?>
-			$this-><?= $this->e($column->name) ?> = 0.0;
-<?php elseif ($column->type === '\DateTimeInterface'): ?>
-			$this-><?= $this->e($column->name) ?> = new \DateTime();
+<?php if ($column->getPhpType() === 'string'): ?>
+			$this-><?= $this->e($column->getName()) ?> = "";
+<?php elseif ($column->getPhpType() === 'int'): ?>
+			$this-><?= $this->e($column->getName()) ?> = 0;
+<?php elseif ($column->getPhpType() === 'bool'): ?>
+			$this-><?= $this->e($column->getName()) ?> = false;
+<?php elseif ($column->getPhpType() === 'float'): ?>
+			$this-><?= $this->e($column->getName()) ?> = 0.0;
+<?php elseif ($column->getPhpType() === '\DateTimeInterface'): ?>
+			$this-><?= $this->e($column->getName()) ?> = new \DateTime();
 <?php endif; ?>
 <?php endforeach; ?>
+
+			return;
 		}
 	}
