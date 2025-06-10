@@ -400,13 +400,13 @@ HELP_TEXT;
 
 					break;
 				case 'api':
-					$fileCreatePaths['api'] = $fh->pathJoin($baseCreatePath, 'api', 'generated');
+					$fileCreatePaths['api'] = $fh->pathJoin('~/api', 'generated');
 
 					break;
 				case 'all':
 					$fileCreatePaths['cls'] = $fh->pathJoin($baseCreatePath, $config->get('classesPath'), 'generated');
 					$fileCreatePaths['rpo'] = $fh->pathJoin($baseCreatePath, $config->get('reposPath'), 'generated');
-					$fileCreatePaths['api'] = $fh->pathJoin($baseCreatePath, 'api', 'generated');
+					$fileCreatePaths['api'] = $fh->pathJoin('~/api', 'generated');
 
 					break;
 				default:
