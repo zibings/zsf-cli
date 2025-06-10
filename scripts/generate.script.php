@@ -42,4 +42,3 @@ HELP_TEXT;
 			return;
 		}
 	}
-
