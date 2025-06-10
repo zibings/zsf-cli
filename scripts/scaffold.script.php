@@ -419,7 +419,7 @@ HELP_TEXT;
 				return;
 			}
 
-			foreach ($fileCreatePaths as $type => $path) {
+			foreach ($fileCreatePaths as $path) {
 				if (!$fh->folderExists($path)) {
 					$fh->makeFolder($path, 0755, true);
 					$ch->putLine('Created directory: ' . $path);

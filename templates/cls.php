@@ -4,10 +4,11 @@
 	namespace <?= $Namespace ?>;
 
 	use Stoic\Log\Logger;
+	use Stoic\Pdo\BaseDbColumnFlags as BCF;
 	use Stoic\Pdo\BaseDbTypes;
 	use Stoic\Pdo\PdoHelper;
 	use Stoic\Pdo\StoicDbModel;
-	use Stoic\Pdo\BaseDbColumnFlags as BCF;
+	use Stoic\Utilities\ReturnHelper;
 
 	class <?= $this->e($ClassName) ?> extends StoicDbModel {
 <?php foreach ($Columns as $column): ?>
@@ -26,6 +27,63 @@
 		}
 
 
+		/**
+ 		 * Determines if the system should attempt to create a <?= $this->e($ClassName) ?> in the database.
+		 *
+		 * @return bool|ReturnHelper
+		 */
+		protected function __canCreate() : bool|ReturnHelper {
+			$ret = new ReturnHelper();
+
+			$ret->makeGood();
+
+			return $ret;
+		}
+
+		/**
+		 * Determines if the system should attempt to delete a <?= $this->e($ClassName) ?> from the database.
+		 *
+		 * @return bool|ReturnHelper
+		 */
+		protected function __canDelete() : bool|ReturnHelper {
+			$ret = new ReturnHelper();
+
+			$ret->makeGood();
+
+			return $ret;
+		}
+
+		/**
+		 * Determines if the system should attempt to read a <?= $this->e($ClassName) ?> from the database.
+		 *
+		 * @return bool|ReturnHelper
+		 */
+		protected function __canRead() : bool|ReturnHelper {
+			$ret = new ReturnHelper();
+
+			$ret->makeGood();
+
+			return $ret;
+		}
+
+		/**
+		 * Determines if the system should attempt to update a <?= $this->e($ClassName) ?> in the database.
+		 *
+		 * @return bool|ReturnHelper
+		 */
+		protected function __canUpdate() : bool|ReturnHelper {
+			$ret = new ReturnHelper();
+
+			$ret->makeGood();
+
+			return $ret;
+		}
+
+		/**
+		 * Initializes a new <?= $this->e($ClassName) ?> object.
+		 *
+		 * @return void
+		 */
 		protected function __setupModel() : void {
 <?php foreach ($Columns as $column): ?>
 			$this->setColumn('<?= $this->e($column->getName()) ?>', '<?= $this->e($column->getName()) ?>', BaseDbTypes::<?= $this->e($column->getModelType()) ?><?php if (count($column->getFlags()) > 0): ?>, BCF::<?= $this->e(implode(' | BCF::', $column->getFlags())) ?><?php endif; ?>);
