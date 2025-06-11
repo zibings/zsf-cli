@@ -30,7 +30,8 @@
 				$input['overwrite'],
 				$input['table'],
 				$input['type'],
-				$input['connection']
+				$input['connection'],
+				$input['camelCase'] ?? false
 			);
 		}
 
@@ -45,6 +46,7 @@
 		 * @param string $table
 		 * @param string $type
 		 * @param null|string $connection
+		 * @param bool $camelCase
 		 */
 		public function __construct(
 			public string $db,
@@ -53,7 +55,8 @@
 			public bool $overwrite,
 			public string $table,
 			public string $type,
-			public null|string $connection
+			public null|string $connection,
+			public bool $camelCase = false
 		) {
 			return;
 		}
@@ -122,6 +125,7 @@
 				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
 				'connection'  => $ch->getParameterWithDefault('c', 'connection', null, true),
+				'camelCase'   => $ch->getParameterWithDefault('camel', 'camel-case', false, true),
 			];
 
 			$validationFuncs = [
@@ -308,6 +312,24 @@
 
 			$ret['overwrite'] = $overwrite->getResults()[0] == 'yes' || $overwrite->getResults()[0] == 'y';
 
+			$camelCase = $ch->getQueriedInput(
+				'Would you like to output properties in camelCase?',
+				'(y)es, (n)o',
+				'Invalid input specified. Valid inputs are: yes, no, y, or n',
+				$maxTries,
+				$validationFuncs['yesno'],
+				$sanitationFuncs['yesno']
+			);
+
+			if ($camelCase->isBad()) {
+				$ch->putLine();
+				$ch->putLine('Aborting script execution, invalid input specified. Valid inputs are: yes, no');
+
+				exit;
+			}
+
+			$ret['camelCase'] = $camelCase->getResults()[0] == 'yes' || $camelCase->getResults()[0] == 'y';
+
 			return ScaffoldArguments::fromArray($ret);
 		}
 
@@ -447,19 +469,20 @@ HELP_TEXT;
 					$primaryKeyArgsWithoutTypes = [];
 
 					foreach ($columns as $column) {
-						$columnArgsStrings[] = "'" . $column->getName() . "'";
+						$columnArgsStrings[] = "'" . $column->getName($input->camelCase) . "'";
 
 						foreach ($column->getFlags() as $flag) {
 							if ($flag->is(BaseDbColumnFlags::IS_KEY)) {
 								$primaryKeys[]                = $column;
-								$primaryKeyArgsWithoutTypes[] = $column->getName();
-								$primaryKeyArgsStrings[]      = "'" . $column->getName() . "'";
-								$primaryKeyArgsWithTypes[]    = $column->getPhpType() . " $" . $column->getName();
+								$primaryKeyArgsWithoutTypes[] = $column->getName($input->camelCase);
+								$primaryKeyArgsStrings[]      = "'" . $column->getName($input->camelCase) . "'";
+								$primaryKeyArgsWithTypes[]    = $column->getPhpType() . " $" . $column->getName($input->camelCase);
 							}
 						}
 					}
 
 					$tplData = [
+						'CamelCase'               => $input->camelCase,
 						'Namespace'               => $input->namespace,
 						'ClassName'               => $table,
 						'Columns'                 => $columns,

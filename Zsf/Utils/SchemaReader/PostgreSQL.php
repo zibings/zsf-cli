@@ -19,15 +19,6 @@
 		}
 
 		/**
-		 * Returns the name of the column.
-		 *
-		 * @return string
-		 */
-		public function getName() : string {
-			return $this->data['name'] ?? '!!ERROR!!';
-		}
-
-		/**
 		 * Returns the Stoic base model type for the column.
 		 *
 		 * @return BaseDbTypes

@@ -12,14 +12,14 @@
 
 	class <?= $this->e($ClassName) ?> extends StoicDbModel {
 <?php foreach ($Columns as $column): ?>
-		public <?= $this->e($column->getPhpType()) ?> $<?= $this->e($column->getName()) ?>;
+		public <?= $this->e($column->getPhpType()) ?> $<?= $this->e($column->getName($CamelCase)) ?>;
 <?php endforeach; ?>
 
 
 		public static function from<?= $this->e($FromPrimaryKey) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>, PdoHelper $db, Logger $log = null): <?= $this->e($ClassName) ?> {
 			$ret = new <?= $this->e($ClassName) ?>($db, $log);
 <?php foreach ($PrimaryKeys as $pk): ?>
-			$ret-><?= $this->e($pk->getName()) ?> = $<?= $this->e($pk->getName()) ?>;
+			$ret-><?= $this->e($pk->getName($CamelCase)) ?> = $<?= $this->e($pk->getName($CamelCase)) ?>;
 <?php endforeach; ?>
 			$ret->read();
 
@@ -82,24 +82,25 @@
 		/**
 		 * Initializes a new <?= $this->e($ClassName) ?> object.
 		 *
+		 * @throws \Exception
 		 * @return void
 		 */
 		protected function __setupModel() : void {
 <?php foreach ($Columns as $column): ?>
-			$this->setColumn('<?= $this->e($column->getName()) ?>', '<?= $this->e($column->getName()) ?>', BaseDbTypes::<?= $this->e($column->getModelType()) ?><?php if (count($column->getFlags()) > 0): ?>, BCF::<?= $this->e(implode(' | BCF::', $column->getFlags())) ?><?php endif; ?>);
+			$this->setColumn('<?= $this->e($column->getName($CamelCase)) ?>', '<?= $this->e($column->getName()) ?>', BaseDbTypes::<?= $this->e($column->getModelType()) ?><?php if (count($column->getFlags()) > 0): ?>, BCF::<?= $this->e(implode(' | BCF::', $column->getFlags())) ?><?php endif; ?>);
 <?php endforeach; ?>
 
 <?php foreach ($Columns as $column): ?>
 <?php if ($column->getPhpType() === 'string'): ?>
-			$this-><?= $this->e($column->getName()) ?> = "";
+			$this-><?= $this->e($column->getName($CamelCase)) ?> = "";
 <?php elseif ($column->getPhpType() === 'int'): ?>
-			$this-><?= $this->e($column->getName()) ?> = 0;
+			$this-><?= $this->e($column->getName($CamelCase)) ?> = 0;
 <?php elseif ($column->getPhpType() === 'bool'): ?>
-			$this-><?= $this->e($column->getName()) ?> = false;
+			$this-><?= $this->e($column->getName($CamelCase)) ?> = false;
 <?php elseif ($column->getPhpType() === 'float'): ?>
-			$this-><?= $this->e($column->getName()) ?> = 0.0;
+			$this-><?= $this->e($column->getName($CamelCase)) ?> = 0.0;
 <?php elseif ($column->getPhpType() === '\DateTimeInterface'): ?>
-			$this-><?= $this->e($column->getName()) ?> = new \DateTime();
+			$this-><?= $this->e($column->getName($CamelCase)) ?> = new \DateTime('now', new \DateTimeZone('UTC'));
 <?php endif; ?>
 <?php endforeach; ?>
 
