@@ -4,12 +4,273 @@
 
 	use AndyM84\Config\ConfigContainer;
 
+	use Stoic\Pdo\BaseDbTypes;
 	use Stoic\Utilities\ConsoleHelper;
 	use Stoic\Utilities\FileHelper;
 
 	use Zsf\Utils\ZsfCliScript;
 
+	class GenerateArguments {
+		/**
+		 * Create a GenerateArguments instance from an array.
+		 *
+		 * @param array $input
+		 * @return GenerateArguments
+		 */
+		public static function fromArray(array $input) : GenerateArguments {
+			return new GenerateArguments(
+				$input['type'] ?? '',
+				$input['model'] ?? null,
+				$input['namespace'] ?? null,
+				$input['out-dir'] ?? '',
+				$input['overwrite'] ?? false
+			);
+		}
+
+
+		/**
+		 * Instantiates a GenerateArguments object with the provided parameters.
+		 *
+		 * @param string $type
+		 * @param null|string $model
+		 * @param null|string $namespace
+		 * @param string $outDir
+		 * @param bool $overwrite
+		 */
+		public function __construct(
+			public string $type,
+			public null|string $model,
+			public null|string $namespace,
+			public string $outDir,
+			public bool $overwrite
+		) {
+			return;
+		}
+	}
+
 	class GenerateScript implements ZsfCliScript {
+		protected function __getInput(ConsoleHelper $ch) : GenerateArguments {
+			$ret       = [
+				'type'      => $ch->getParameterWithDefault('t', 'type', '', true),
+				'model'     => $ch->getParameterWithDefault('m', 'model', null, true),
+				'namespace' => $ch->getParameterWithDefault('n', 'namespace', null, true),
+				'out-dir'   => $ch->getParameterWithDefault('o', 'out-dir', '', true),
+				'overwrite' => $ch->hasShortLongArg('w', 'overwrite', true),
+			];
+
+			$supplied = [];
+			$required = ['t.type', 'o.out-dir', 'm.model||n.namespace'];
+			$validationFuncs = [
+				'empty'  => function (mixed $value) : bool {
+					return !empty($value);
+				},
+				'type'   => function (mixed $value) : bool {
+					return in_array(strtolower($value), ['ts']);
+				},
+				'yesno'  => function (mixed $value) : bool {
+					return in_array(strtolower($value), ['yes', 'no', 'y', 'n']);
+				},
+				'source' => function (mixed $value) : bool {
+					return in_array(strtolower($value), ['model', 'namespace']);
+				}
+			];
+
+			foreach ($required as $param) {
+				if (str_contains($param, '||')) {
+					$params = explode('||', $param);
+
+					foreach ($params as $p) {
+						$parts = explode('.', $p);
+
+						if ($ch->hasShortLongArg($parts[0], $parts[1], true)) {
+							$supplied[] = $param;
+
+							break;
+						}
+					}
+				}
+
+				$parts = explode('.', $param);
+
+				if ($ch->hasShortLongArg($parts[0], $parts[1], true)) {
+					$supplied[] = $param;
+				}
+			}
+
+			if (count($supplied) === count($required)) {
+				if (!$validationFuncs['type']($ret['type'])) {
+					$ch->putLine('Aborting script execution, invalid type specified.  Valid types are: ts');
+
+					exit;
+				}
+
+				if (!$validationFuncs['empty']($ret['out-dir'])) {
+					$ch->putLine('Aborting script execution, out-dir cannot be empty.');
+
+					exit;
+				}
+
+				return GenerateArguments::fromArray($ret);
+			}
+
+			$missing = array_merge(
+				array_diff($required, $supplied),
+				array_diff($supplied, $required)
+			);
+
+			$sanitationFuncs = [
+				'trim'         => function (mixed $value) : string {
+					return trim($value);
+				},
+				'trimAndLower' => function (mixed $value) : string {
+					return strtolower(trim($value));
+				},
+				'yesno'        => function (mixed $value) : string {
+					$value = strtolower(trim($value));
+
+					if ($value == 'yes' || $value == 'y') {
+						return 'yes';
+					}
+
+					return 'no';
+				}
+			];
+
+			$maxTries = 3;
+
+			foreach ($missing as $param) {
+				switch ($param) {
+					case 'type':
+						$type = $ch->getQueriedInput(
+							'What type of file(s) do you want to generate?',
+							'ts',
+							'Invalid type specified, valid types are: ts',
+							$maxTries,
+							$validationFuncs['type'],
+							$sanitationFuncs['trimAndLower']
+						);
+
+						if ($type->isBad()) {
+							$ch->putLine();
+							$ch->putLine('Aborting script execution, invalid type specified.  Valid types are: ts');
+
+							exit;
+						}
+
+						$ret['type'] = $type->getResults()[0];
+
+						break;
+
+					case 'out-dir':
+						$outDir = $ch->getQueriedInput(
+							'What is the output directory for the generated file(s)?',
+							'./generated',
+							'Invalid output directory specified, must be a valid path',
+							$maxTries,
+							$validationFuncs['empty'],
+							$sanitationFuncs['trim']
+						);
+
+						if ($outDir->isBad()) {
+							$ch->putLine();
+							$ch->putLine('Aborting script execution, invalid output directory specified.');
+
+							exit;
+						}
+
+						$ret['out-dir'] = $outDir->getResults()[0];
+
+						break;
+
+					case 'model||namespace':
+						$source = $ch->getQueriedInput(
+							'Would you like to generate files based on a model or a namespace?',
+							'model',
+							'Invalid source specified, must be either "model" or "namespace"',
+							$maxTries,
+							$validationFuncs['source'],
+							$sanitationFuncs['trimAndLower']
+						);
+
+						if ($source->isBad()) {
+							$ch->putLine();
+							$ch->putLine('Aborting script execution, invalid source specified.  Must be either "model" or "namespace"');
+
+							exit;
+						}
+
+						$chosenSource = $source->getResults()[0];
+
+						if ($chosenSource === 'model') {
+							$model = $ch->getQueriedInput(
+								'What is the model name you want to generate files for?',
+								null,
+								'Invalid model name specified, must be a valid model class name',
+								$maxTries,
+								$validationFuncs['empty'],
+								$sanitationFuncs['trim']
+							);
+
+							if ($model->isBad()) {
+								$ch->putLine();
+								$ch->putLine('Aborting script execution, invalid model name specified.');
+
+								exit;
+							}
+
+							$ret['model'] = $model->getResults()[0];
+						} else {
+							$namespace = $ch->getQueriedInput(
+								'What is the namespace you want to generate files for?',
+								null,
+								'Invalid namespace specified, must be a valid namespace',
+								$maxTries,
+								$validationFuncs['empty'],
+								$sanitationFuncs['trim']
+							);
+
+							if ($namespace->isBad()) {
+								$ch->putLine();
+								$ch->putLine('Aborting script execution, invalid namespace specified.');
+
+								exit;
+							}
+
+							$ret['namespace'] = $namespace->getResults()[0];
+						}
+
+						break;
+
+					default:
+						break;
+				}
+			}
+
+			if (!$ch->hasShortLongArg('w', 'overwrite', true)) {
+				$overwrite = $ch->getQueriedInput(
+					'Do you want to overwrite existing files? (yes/no)',
+					'no',
+					'Invalid input, must be either "yes" or "no"',
+					$maxTries,
+					$validationFuncs['yesno'],
+					$sanitationFuncs['yesno']
+				);
+
+				if ($overwrite->isBad()) {
+					$ch->putLine();
+					$ch->putLine('Aborting script execution, invalid input for overwrite.');
+
+					exit;
+				}
+
+				$ret['overwrite'] = $overwrite->getResults()[0] == 'yes';
+
+				$ch->putLine();
+			}
+
+			return GenerateArguments::fromArray($ret);
+		}
+
 		public function help() : string {
 			return <<< HELP_TEXT
 ZSF CLI Generate Script
@@ -18,6 +279,17 @@ Description:           Generate file(s) using meta data from existing db model(s
 Interactive Usage:     vendor/bin/zsf-cli generate
 Non-Interactive Usage: vendor/bin/zsf-cli generate --type=js --model=model_name --out-dir=out_dir
                        vendor/bin/zsf-cli generate --type=ts --namespace=namespace --out-dir=out_dir
+                       vendor/bin/zsf-cli generate --type=ts --model=model_name --out-dir=out_dir --overwrite
+HELP_TEXT;
+		}
+
+		public function helpInternal() : string {
+			return <<< HELP_TEXT
+Description:           Generate file(s) using meta data from existing db models
+Interactive Usage:     vendor/bin/zsf-cli generate
+Non-Interactive Usage: vendor/bin/zsf-cli generate --model=Zibings\User --type=ts --out-dir=./generated
+                       vendor/bin/zsf-cli generate --namespace=Zibings --type=ts --out-dir=./generated
+                       vendor/bin/zsf-cli generate --model=Zibings\User --type=ts --out-dir=./generated --overwrite
 HELP_TEXT;
 		}
 
@@ -26,17 +298,125 @@ HELP_TEXT;
 		}
 
 		public function oneLineDescription() : string {
-			return 'Generate file(s) using meta data  from existing db models';
+			return 'Generate file(s) using meta data from existing db models';
 		}
 
 		public function run(ConsoleHelper $ch, FileHelper $fh, ConfigContainer $config) : void {
 			$ch->putLine('ZSF Generate Script');
 			$ch->putLine('-------------------');
 			$ch->putLine();
-			$ch->putLine('This script will generate file(s) from existing db model(s).');
-			$ch->putLine('You can use the --model option to specify a specific model to generate.');
-			$ch->putLine('You can use the --namespace option to specify the namespace for the generated files.');
-			$ch->putLine('You can use the --out-dir option to specify the output directory for the generated files.');
+
+			if ($ch->hasShortLongArg('help', 'h')) {
+				$ch->putLine($this->helpInternal());
+
+				return;
+			}
+
+			$typeLookup = [
+				BaseDbTypes::BOOLEAN  => 'boolean',
+				BaseDbTypes::DATETIME => 'Date',
+				BaseDbTypes::INTEGER  => 'number',
+				BaseDbTypes::STRING   => 'string',
+			];
+			$defaultLookup = [
+				BaseDbTypes::BOOLEAN  => 'false',
+				BaseDbTypes::DATETIME => 'new Date()',
+				BaseDbTypes::INTEGER  => '0',
+				BaseDbTypes::STRING   => "''",
+			];
+
+			$input = $this->__getInput($ch);
+
+			$ch->putLine('Input:');
+			$ch->putLine('  Type:        ' . $input->type);
+			$ch->putLine('  Model:       ' . ($input->model ?? 'N/A'));
+			$ch->putLine('  Namespace:   ' . $input->namespace);
+			$ch->putLine('  Overwrite:   ' . ($input->overwrite ? 'true' : 'false'));
+			$ch->putLine();
+
+			if (!$fh->folderExists($input->outDir)) {
+				$fh->makeFolder($input->outDir, 0755, true);
+			}
+
+			$modelClasses = [];
+			$blankDb      = new \Stoic\Pdo\PdoHelper('sqlite::memory:');
+
+			foreach (get_declared_classes() as $class) {
+				if (!is_subclass_of($class, \Stoic\Pdo\BaseDbModel::class)) {
+					continue;
+				}
+
+				if ($input->model !== null && $class !== $input->model) {
+					continue;
+				}
+
+				if ($input->namespace !== null && !str_starts_with($class, $input->namespace)) {
+					continue;
+				}
+
+				$modelClasses[] = $class;
+			}
+
+			if (count($modelClasses) === 0) {
+				$ch->putLine('No model classes found matching the specified criteria.');
+
+				return;
+			}
+
+			$ch->putLine('Found ' . count($modelClasses) . ' model class(es):');
+
+			foreach ($modelClasses as $modelClass) {
+				$cls       = new $modelClass($blankDb);
+				$fields    = $cls->getDbColumns();
+				$shortName = $cls->getShortClassName();
+				$fileName  = $shortName . '.ts';
+				$className = "{$shortName}Base";
+				$ifaceName = "{$shortName}Model";
+
+				if (!$input->overwrite && $fh->fileExists($fh->pathJoin($input->outDir, $fileName))) {
+					$ch->putLine("  - Skipping $shortName.ts, file already exists and overwrite is disabled.");
+
+					continue;
+				}
+
+				$ch->put("  - Generating $shortName.ts.. ");
+
+				$class = "export class {$className} {";
+				$iface = "export interface {$ifaceName} {";
+				$ctorModelInit = "if (model) {";
+				$ctorPlainInit = "} else {";
+
+				foreach ($fields as $property => $field) {
+					$iface         .= "\n\t{$property}: {$typeLookup[$field->type->getValue()]};";
+					$ctorModelInit .= "\n\t\t\tthis.{$property} = model.{$property}";
+					$class         .= "\n\tpublic {$property}: {$typeLookup[$field->type->getValue()]};";
+					$ctorPlainInit .= "\n\t\t\tthis.{$property} = {$defaultLookup[$field->type->getValue()]}";
+				}
+
+				$iface .= "\n}";
+				$tsTpl = <<< END_OF_TS
+{$iface}
+
+{$class}
+
+	constructor(model?: {$ifaceName}) {
+		{$ctorModelInit};
+		{$ctorPlainInit};
+		}
+
+		return;
+	}
+}
+
+END_OF_TS;
+
+				$fh->putContents($fh->pathJoin($input->outDir, $fileName), $tsTpl);
+
+				$ch->putLine('DONE');
+			}
+
+			$ch->putLine();
+			$ch->putLine('All files generated successfully.');
 			$ch->putLine();
 
 			return;
