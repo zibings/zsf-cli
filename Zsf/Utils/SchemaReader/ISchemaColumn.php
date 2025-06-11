@@ -65,4 +65,54 @@
 		 * @return void
 		 */
 		abstract protected function parseColumn() : void;
+
+		/**
+		 * Transforms a string to camelCase format.
+		 *
+		 * @param string $string
+		 * @return string
+		 */
+		protected function toCamelCase(string $string) : string {
+			$string = trim($string);
+
+			if (empty($string)) {
+				return '';
+			}
+
+			for ($i = 0; $i < strlen($string); $i++) {
+				if (ctype_upper($string[$i]) && ($i > 0 && ctype_upper($string[$i - 1]))) {
+					$string = substr_replace($string, strtolower($string[$i]), $i, 1);
+				}
+			}
+
+			$string[0] = strtolower($string[0]);
+
+			if (str_contains($string, '_') || str_contains($string, '-')) {
+				$parts     = preg_split('/[_-]/', $string);
+				$camelCase = array_shift($parts);
+
+				foreach ($parts as $part) {
+					$camelCase .= ucfirst(strtolower($part));
+				}
+
+				return $camelCase;
+			}
+
+			if (ctype_upper($string[0])) {
+				return lcfirst($string);
+			}
+
+			if (ctype_upper(str_replace(['_', '-'], '', $string))) {
+				$words     = preg_split('/[_-]/', strtolower($string));
+				$camelCase = array_shift($words);
+
+				foreach ($words as $word) {
+					$camelCase .= ucfirst($word);
+				}
+
+				return $camelCase;
+			}
+
+			return $string;
+		}
 	}
