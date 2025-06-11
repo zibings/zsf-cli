@@ -121,7 +121,7 @@
 				'db'          => $ch->getParameterWithDefault('db', 'database', '', true),
 				'interactive' => $ch->getParameterWithDefault('ni', 'non-interactive', false, true),
 				'namespace'   => $ch->getParameterWithDefault('ns', 'namespace', '', true),
-				'overwrite'   => !$ch->hasShortLongArg('no', 'no-overwrite', true),
+				'overwrite'   => $ch->hasShortLongArg('ow', 'overwrite', true),
 				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
 				'connection'  => $ch->getParameterWithDefault('c', 'connection', null, true),
@@ -347,7 +347,7 @@ Description:           Generate scaffold file(s) from a database or database tab
 Interactive Usage:     vendor/bin/zsf-cli scaffold
 Non-Interactive Usage: vendor/bin/zsf-cli scaffold --type=model --db=db_name --table=table_name --namespace=namespace
                        vendor/bin/zsf-cli scaffold --type=repo --db=db_name --namespace=namespace
-                       vendor/bin/zsf-cli scaffold --type=api --db=db_name --no-overwrite --namespace=namespace
+                       vendor/bin/zsf-cli scaffold --type=api --db=db_name --overwrite --namespace=namespace
                        vendor/bin/zsf-cli scaffold --type=all --db=db_name --namespace=namespace
 HELP_TEXT;
 		}
