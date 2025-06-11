@@ -39,9 +39,14 @@
 		/**
 		 * Returns the name of the column.
 		 *
+		 * @param bool $camelCase Optional flag to return the name in camelCase format.
 		 * @return string
 		 */
-		public function getName() : string {
+		public function getName(bool $camelCase = false) : string {
+			if ($camelCase) {
+				return $this->toCamelCase($this->data['name']) ?? '!!ERROR!!';
+			}
+
 			return $this->data['name'] ?? '!!ERROR!!';
 		}
 
