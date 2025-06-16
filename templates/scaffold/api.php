@@ -8,14 +8,13 @@
 	use Zibings\ApiController;
 
 	class <?= $this->e($ClassName) ?>API extends ApiController {
-
 		/**
-		* Creates/Inserts a <?= $this->e($ClassName) ?> into the database.
-		*
-		* @return Response
-		*/
+		 * Creates/Inserts a <?= $this->e($ClassName) ?> into the database.
+		 *
+		 * @return Response
+		 */
 		public function create<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
-			$ret = $this->newResponse();
+			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
 			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>]) === false) {
@@ -36,24 +35,25 @@
 <?php endforeach; ?>
 
 			$create = $entity->create();
+
 			if ($create->isBad()) {
-				if ($create->hasMessages()) {
-					$ret->setAsError($create->getMessages()[0]);
-				} else {
-					$ret->setAsError('Failed to create <?= $this->e($ClassName) ?>');
-				}
+				$ret->assignReturnHelperError($ret, $create, 'Failed to create <?= $this->e($ClassName) ?>');
+
+				return $ret;
 			}
+
+			$ret->setData($entity);
 
 			return $ret;
 		}
 
 		/**
-		* Get/Read a <?= $this->e($ClassName) ?> from the database.
-		*
-		* @return Response
-		*/
+		 * Get/Read a <?= $this->e($ClassName) ?> from the database.
+		 *
+		 * @return Response
+		 */
 		public function read<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
-			$ret = $this->newResponse();
+			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
 			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>]) === false) {
@@ -74,25 +74,26 @@
 <?php endforeach; ?>
 
 			$read = $entity->read();
+
 			if ($read->isBad()) {
-				if ($read->hasMessages()) {
-					$ret->setAsError($read->getMessages()[0]);
-				} else {
-					$ret->setAsError('Failed to get <?= $this->e($ClassName) ?>');
-				}
+				$ret->assignReturnHelperError($ret, $read, 'Failed to read <?= $this->e($ClassName) ?>');
+
+				return $ret;
 			}
+
+			$ret->setData($entity);
 
 			return $ret;
 		}
 
 
 		/**
-		* Modify/Update a <?= $this->e($ClassName) ?> from the database.
-		*
-		* @return Response
-		*/
+		 * Modify/Update a <?= $this->e($ClassName) ?> from the database.
+		 *
+		 * @return Response
+		 */
 		public function update<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
-			$ret = $this->newResponse();
+			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
 			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($ColumnArgsStrings)) ?>]) === false) {
@@ -113,24 +114,25 @@
 <?php endforeach; ?>
 
 			$update = $entity->update();
+
 			if ($update->isBad()) {
-				if ($update->hasMessages()) {
-					$ret->setAsError($update->getMessages()[0]);
-				} else {
-					$ret->setAsError('Failed to update <?= $this->e($ClassName) ?>');
-				}
+				$ret->assignReturnHelperError($ret, $update, 'Failed to update <?= $this->e($ClassName) ?>');
+
+				return $ret;
 			}
+
+			$ret->setData($entity);
 
 			return $ret;
 		}
 
 		/**
-		* Delete a <?= $this->e($ClassName) ?> from the database.
-		*
-		* @return Response
-		*/
+		 * Delete a <?= $this->e($ClassName) ?> from the database.
+		 *
+		 * @return Response
+		 */
 		public function delete<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
-			$ret = $this->newResponse();
+			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
 			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>]) === false) {
@@ -151,13 +153,14 @@
 <?php endforeach; ?>
 
 			$delete = $entity->delete();
+
 			if ($delete->isBad()) {
-				if ($delete->hasMessages()) {
-					$ret->setAsError($delete->getMessages()[0]);
-				} else {
-					$ret->setAsError('Failed to delete <?= $this->e($ClassName) ?>');
-				}
+				$ret->assignReturnHelperError($ret, $delete, 'Failed to delete <?= $this->e($ClassName) ?>');
+
+				return $ret;
 			}
+
+			$ret->setData($entity);
 
 			return $ret;
 		}
