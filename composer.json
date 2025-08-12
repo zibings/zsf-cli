@@ -3,7 +3,7 @@
 	"description":"Collection of utility scripts for use alongside ZSF",
 	"minimum-stability":"dev",
 	"license":"Apache-2.0",
-	"version":"1.3.2",
+	"version":"1.3.3",
 	"autoload":{
 		"exclude-from-classmap": ["Tests/"],
 		"psr-0": {
@@ -20,9 +20,6 @@
 			"scripts/generate.script.php",
 			"scripts/scaffold.script.php",
 			"scripts/version.script.php",
-			"templates/scaffold/api.tpl",
-			"templates/scaffold/cls.tpl",
-			"templates/scaffold/rpo.tpl",
 			"Zsf/Utils/CliFunctions.php"
 		]
 	},
@@ -60,5 +57,12 @@
 	},
 	"bin": [
 		"zsf-cli"
-	]
+	],
+	"extra": {
+		"files": [
+			"templates/scaffold/api.tpl",
+			"templates/scaffold/cls.tpl",
+			"templates/scaffold/rpo.tpl"
+		]
+	}
 }
