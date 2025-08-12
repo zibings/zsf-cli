@@ -497,7 +497,7 @@ HELP_TEXT;
 					foreach ($fileCreatePaths as $type => $path) {
 						$ch->putLine('  Generating ' . $type . ' file...');
 
-						$engine     = new \League\Plates\Engine($fh->pathJoin('~/templates/scaffold'));
+						$engine     = new \League\Plates\Engine($fh->pathJoin('~/templates/scaffold'), 'tpl');
 						$phpCode    = $engine->render($type, $tplData);
 						$outputPath = $fh->pathJoin($path, $table . '.' . $type . '.php');
 
