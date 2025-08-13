@@ -3,6 +3,8 @@
 
 	namespace <?= $Namespace ?>;
 
+	use Stoic\Pdo\StoicDbClass;
+
 	class <?= $this->e($ClassName) ?>s extends StoicDbClass {
 		/**
 		 * Retrieves all <?= $this->e($ClassName) ?>s from the database.

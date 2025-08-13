@@ -5,6 +5,7 @@
 
 	use Stoic\Web\Api\Response;
 	use Stoic\Web\Request;
+
 	use Zibings\ApiController;
 
 	class <?= $this->e($ClassName) ?>API extends ApiController {
@@ -13,6 +14,7 @@
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
 		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @throws \Exception
 		 * @return Response
 		 */
 		public function create<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -39,7 +41,7 @@
 			$create = $entity->create();
 
 			if ($create->isBad()) {
-				$ret->assignReturnHelperError($ret, $create, 'Failed to create <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $create, 'Failed to create <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -54,6 +56,7 @@
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
 		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @throws \Exception
 		 * @return Response
 		 */
 		public function read<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -80,7 +83,7 @@
 			$read = $entity->read();
 
 			if ($read->isBad()) {
-				$ret->assignReturnHelperError($ret, $read, 'Failed to read <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $read, 'Failed to read <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -90,12 +93,12 @@
 			return $ret;
 		}
 
-
 		/**
 		 * Modify/Update a <?= $this->e($ClassName) ?> from the database.
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
 		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @throws \Exception
 		 * @return Response
 		 */
 		public function update<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -122,7 +125,7 @@
 			$update = $entity->update();
 
 			if ($update->isBad()) {
-				$ret->assignReturnHelperError($ret, $update, 'Failed to update <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $update, 'Failed to update <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -137,6 +140,7 @@
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
 		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @throws \Exception
 		 * @return Response
 		 */
 		public function delete<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -163,7 +167,7 @@
 			$delete = $entity->delete();
 
 			if ($delete->isBad()) {
-				$ret->assignReturnHelperError($ret, $delete, 'Failed to delete <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $delete, 'Failed to delete <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
