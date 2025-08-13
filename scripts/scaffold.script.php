@@ -282,7 +282,7 @@
 				'Invalid namespace specified',
 				$maxTries,
 				$validationFuncs['empty'],
-				$sanitationFuncs['trimAndLower']
+				$sanitationFuncs['trim']
 			);
 
 			if ($namespace->isBad()) {
@@ -393,6 +393,7 @@ HELP_TEXT;
 
 			$ch->putLine('Database connection established');
 			$ch->putLine('  DSN:         ' . $db->dsn);
+			$ch->putLine();
 
 			$readerDriver = match ($db->getDriver()->getValue()) {
 				PdoDrivers::PDO_MSSQL, PdoDrivers::PDO_SQLSRV => SqlServerReader::class,
@@ -441,11 +442,19 @@ HELP_TEXT;
 				return;
 			}
 
+			$directoriesCreated = false;
+
 			foreach ($fileCreatePaths as $path) {
 				if (!$fh->folderExists($path)) {
 					$fh->makeFolder($path, 0755, true);
 					$ch->putLine('Created directory: ' . $path);
+
+					$directoriesCreated = true;
 				}
+			}
+
+			if ($directoriesCreated) {
+				$ch->putLine();
 			}
 
 			try {
@@ -456,8 +465,6 @@ HELP_TEXT;
 				} else {
 					$reader->parseAllTableColumns($input->db);
 				}
-
-				$ch->putLine();
 
 				foreach ($reader->tables as $table => $columns) {
 					$ch->putLine('Generating Table Data: ' . $table);

@@ -11,6 +11,8 @@
 		/**
 		 * Creates/Inserts a <?= $this->e($ClassName) ?> into the database.
 		 *
+		 * @param Request $request The current request which routed to the endpoint.
+		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
 		 * @return Response
 		 */
 		public function create<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -50,6 +52,8 @@
 		/**
 		 * Get/Read a <?= $this->e($ClassName) ?> from the database.
 		 *
+		 * @param Request $request The current request which routed to the endpoint.
+		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
 		 * @return Response
 		 */
 		public function read<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -90,6 +94,8 @@
 		/**
 		 * Modify/Update a <?= $this->e($ClassName) ?> from the database.
 		 *
+		 * @param Request $request The current request which routed to the endpoint.
+		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
 		 * @return Response
 		 */
 		public function update<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -102,13 +108,13 @@
 
 			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($Columns as $column): ?>
-<?php if ($column->type === 'string'): ?>
+<?php if ($column->getPhpType() === 'string'): ?>
 			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getString("<?= $this->e($column->getName($CamelCase)) ?>");
-<?php elseif ($column->type === 'int'): ?>
+<?php elseif ($column->getPhpType() === 'int'): ?>
 			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getInt("<?= $this->e($column->getName($CamelCase)) ?>");
-<?php elseif ($column->type === 'bool'): ?>
+<?php elseif ($column->getPhpType() === 'bool'): ?>
 			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getBool("<?= $this->e($column->getName($CamelCase)) ?>");
-<?php elseif ($column->type === 'float'): ?>
+<?php elseif ($column->getPhpType() === 'float'): ?>
 			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getFloat("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
@@ -129,6 +135,8 @@
 		/**
 		 * Delete a <?= $this->e($ClassName) ?> from the database.
 		 *
+		 * @param Request $request The current request which routed to the endpoint.
+		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
 		 * @return Response
 		 */
 		public function delete<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
@@ -141,13 +149,13 @@
 
 			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($PrimaryKeys as $pk): ?>
-<?php if ($pk->type === 'string'): ?>
+<?php if ($pk->getPhpType() === 'string'): ?>
 			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getString("<?= $this->e($pk->getName($CamelCase)) ?>");
-<?php elseif ($pk->type === 'int'): ?>
+<?php elseif ($pk->getPhpType() === 'int'): ?>
 			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getInt("<?= $this->e($pk->getName($CamelCase)) ?>");
-<?php elseif ($pk->type === 'bool'): ?>
+<?php elseif ($pk->getPhpType() === 'bool'): ?>
 			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getBool("<?= $this->e($pk->getName($CamelCase)) ?>");
-<?php elseif ($pk->type === 'float'): ?>
+<?php elseif ($pk->getPhpType() === 'float'): ?>
 			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getFloat("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
