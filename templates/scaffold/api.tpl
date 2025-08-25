@@ -1,7 +1,9 @@
 <?= '<?php' ?>
 
 
-	namespace <?= '???' ?>;  // Use short tag for namespace
+	namespace <?= '???' ?>;
+
+	use <?= $Namespace ?>\<?= $this->e($ClassName) ?>;
 
 	use Stoic\Web\Api\Response;
 	use Stoic\Web\Request;
