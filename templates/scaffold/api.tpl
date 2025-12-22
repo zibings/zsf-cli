@@ -24,7 +24,7 @@
 			$params = $request->getInput();
 
 			if (!$params->hasAll(<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>)) {
-                $ret->setAsError("Missing required parameters to create <?= $this->e($ClassName) ?>.");
+				$ret->setAsError("Missing required parameters to create <?= $this->e($ClassName) ?>.");
 
 				return $ret;
 			}
@@ -68,7 +68,7 @@
 			$params = $request->getInput();
 
 			if (!$params->hasAll(<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>)) {
-                $ret->setAsError("Missing required parameters to read <?= $this->e($ClassName) ?>.");
+				$ret->setAsError("Missing required parameters to read <?= $this->e($ClassName) ?>.");
 
 				return $ret;
 			}
@@ -112,7 +112,7 @@
 			$params = $request->getInput();
 
 			if (!$params->hasAll(<?= html_entity_decode($this->e($ColumnArgsStrings)) ?>)) {
-                $ret->setAsError("Missing required parameters to update <?= $this->e($ClassName) ?>.");
+				$ret->setAsError("Missing required parameters to update <?= $this->e($ClassName) ?>.");
 
 				return $ret;
 			}
@@ -156,7 +156,7 @@
 			$params = $request->getInput();
 
 			if (!$params->hasAll(<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>)) {
-                $ret->setAsError("Missing required parameters to delete <?= $this->e($ClassName) ?>.");
+				$ret->setAsError("Missing required parameters to delete <?= $this->e($ClassName) ?>.");
 
 				return $ret;
 			}
