@@ -15,15 +15,17 @@
 		 * Creates/Inserts a <?= $this->e($ClassName) ?> into the database.
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
-		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @param null|array $matches Array of matches returned by endpoint regex pattern.
 		 * @throws \Exception
 		 * @return Response
 		 */
-		public function create<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
+		public function create<?= $this->e($ClassName) ?>(Request $request, null|array $matches = null) : Response {
 			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
-			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>]) === false) {
+			if (!$params->hasAll(<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>)) {
+                $ret->setAsError("Missing required parameters to create <?= $this->e($ClassName) ?>.");
+
 				return $ret;
 			}
 
@@ -43,7 +45,7 @@
 			$create = $entity->create();
 
 			if ($create->isBad()) {
-				$this->assignReturnHelperError($ret, $create, 'Failed to create <?= $this->e($ClassName) ?>');
+				$ret->setAsError('Failed to create <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -57,15 +59,17 @@
 		 * Get/Read a <?= $this->e($ClassName) ?> from the database.
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
-		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @param null|array $matches Array of matches returned by endpoint regex pattern.
 		 * @throws \Exception
 		 * @return Response
 		 */
-		public function read<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
+		public function read<?= $this->e($ClassName) ?>(Request $request, null|array $matches = null) : Response {
 			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
-			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>]) === false) {
+			if (!$params->hasAll(<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>)) {
+                $ret->setAsError("Missing required parameters to read <?= $this->e($ClassName) ?>.");
+
 				return $ret;
 			}
 
@@ -85,7 +89,7 @@
 			$read = $entity->read();
 
 			if ($read->isBad()) {
-				$this->assignReturnHelperError($ret, $read, 'Failed to read <?= $this->e($ClassName) ?>');
+				$ret->setAsError('Failed to read <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -99,15 +103,17 @@
 		 * Modify/Update a <?= $this->e($ClassName) ?> from the database.
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
-		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @param null|array $matches Array of matches returned by endpoint regex pattern.
 		 * @throws \Exception
 		 * @return Response
 		 */
-		public function update<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
+		public function update<?= $this->e($ClassName) ?>(Request $request, null|array $matches = null) : Response {
 			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
-			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($ColumnArgsStrings)) ?>]) === false) {
+			if (!$params->hasAll(<?= html_entity_decode($this->e($ColumnArgsStrings)) ?>)) {
+                $ret->setAsError("Missing required parameters to update <?= $this->e($ClassName) ?>.");
+
 				return $ret;
 			}
 
@@ -127,7 +133,7 @@
 			$update = $entity->update();
 
 			if ($update->isBad()) {
-				$this->assignReturnHelperError($ret, $update, 'Failed to update <?= $this->e($ClassName) ?>');
+				$ret->setAsError('Failed to update <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -141,15 +147,17 @@
 		 * Delete a <?= $this->e($ClassName) ?> from the database.
 		 *
 		 * @param Request $request The current request which routed to the endpoint.
-		 * @param array|null $matches Array of matches returned by endpoint regex pattern.
+		 * @param null|array $matches Array of matches returned by endpoint regex pattern.
 		 * @throws \Exception
 		 * @return Response
 		 */
-		public function delete<?= $this->e($ClassName) ?>(Request $request, array $matches = null): Response {
+		public function delete<?= $this->e($ClassName) ?>(Request $request, null|array $matches = null) : Response {
 			$ret    = $this->newResponse();
 			$params = $request->getInput();
 
-			if ($this->tryGetParams($ret, $request, [<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>]) === false) {
+			if (!$params->hasAll(<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>)) {
+                $ret->setAsError("Missing required parameters to delete <?= $this->e($ClassName) ?>.");
+
 				return $ret;
 			}
 
@@ -169,7 +177,7 @@
 			$delete = $entity->delete();
 
 			if ($delete->isBad()) {
-				$this->assignReturnHelperError($ret, $delete, 'Failed to delete <?= $this->e($ClassName) ?>');
+				$ret->setAsError('Failed to delete <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
