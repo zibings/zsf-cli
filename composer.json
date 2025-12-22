@@ -3,7 +3,7 @@
 	"description":"Collection of utility scripts for use alongside ZSF",
 	"minimum-stability":"dev",
 	"license":"Apache-2.0",
-	"version":"1.3.3",
+	"version":"1.4.0",
 	"autoload":{
 		"exclude-from-classmap": ["Tests/"],
 		"psr-0": {
