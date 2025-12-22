@@ -501,10 +501,22 @@ HELP_TEXT;
 						'PrimaryKeyArgsWithTypes' => implode(", ", $primaryKeyArgsWithTypes),
 					];
 
+					$tplRootPath = '~/templates/scaffold';
+
+					if (!$fh->folderExists($tplRootPath)) {
+						$tplRootPath = '~/vendor/zibings/zsf-cli/templates/scaffold';
+
+						if (!$fh->folderExists($tplRootPath)) {
+							$ch->putLine('Aborting script execution, scaffold template folder not found');
+
+							exit;
+						}
+					}
+
 					foreach ($fileCreatePaths as $type => $path) {
 						$ch->putLine('  Generating ' . $type . ' file...');
 
-						$engine     = new \League\Plates\Engine($fh->pathJoin('~/templates/scaffold'), 'tpl');
+						$engine     = new \League\Plates\Engine($fh->pathJoin($tplRootPath), 'tpl');
 						$phpCode    = $engine->render($type, $tplData);
 						$outputPath = $fh->pathJoin($path, $table . '.' . $type . '.php');
 
