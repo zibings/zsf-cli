@@ -3,9 +3,29 @@
 
 	namespace <?= $Namespace ?>;
 
+	use Stoic\Log\Logger;
+	use Stoic\Pdo\BaseDbQueryTypes;
+	use Stoic\Pdo\PdoHelper;
 	use Stoic\Pdo\StoicDbClass;
 
 	class <?= $this->e($ClassName) ?>s extends StoicDbClass {
+		protected <?= $this->e($ClassName) ?> $obj;
+
+
+		/**
+		 * Instantiates a new <?= $this->e($ClassName) ?>s repository object.
+		 *
+		 * @param \PdoHelper $db
+		 * @param null|Logger $log
+		 */
+		public function __construct(\PdoHelper $db, null|Logger $log = null) {
+			parent::__construct($db, $log);
+
+			$this->obj = new <?= $this->e($ClassName) ?>($db, $log);
+
+			return;
+		}
+
 		/**
 		 * Retrieves all <?= $this->e($ClassName) ?>s from the database.
 		 *
