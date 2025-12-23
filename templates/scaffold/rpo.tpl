@@ -34,8 +34,7 @@
 		public function getAll<?= $this->e($ClassName) ?>s(): array {
 			$ret = [];
 			$this->tryPdoExcept(function () use (&$ret) {
-				$sql = "SELECT * FROM `<?= $this->e($ClassName) ?>`";
-				$query = $this->db->query($sql);
+				$query = $this->db->query($this->obj->generateClassQuery(BaseDbQueryTypes::SELECT, false));
 
 				while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
 					$ret[] = <?= $this->e($ClassName) ?>::fromArray($row, $this->db, $this->log);
