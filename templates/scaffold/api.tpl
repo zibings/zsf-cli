@@ -4,13 +4,14 @@
 	namespace <?= $ApiNamespace ?>;
 
 	use <?= $Namespace ?>\<?= $this->e($ClassName) ?>;
+	use <?= $Namespace ?>\<?= $this->e($PluralClassName) ?> as <?= $this->e($ClassName) ?>Repo;
 
 	use Stoic\Web\Api\Response;
 	use Stoic\Web\Request;
 
 	use Zibings\ApiController;
 
-	class <?= $this->e($ClassName) ?>API extends ApiController {
+	class <?= $this->e($PluralClassName) ?> extends ApiController {
 		/**
 		 * Creates/Inserts a <?= $this->e($ClassName) ?> into the database.
 		 *

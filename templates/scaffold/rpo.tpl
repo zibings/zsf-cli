@@ -8,12 +8,12 @@
 	use Stoic\Pdo\PdoHelper;
 	use Stoic\Pdo\StoicDbClass;
 
-	class <?= $this->e($ClassName) ?>s extends StoicDbClass {
-		protected <?= $this->e($ClassName) ?> $obj;
+	class <?= $this->e($PluralClassName) ?>s extends StoicDbClass {
+		protected <?= $this->e($PluralClassName) ?> $obj;
 
 
 		/**
-		 * Instantiates a new <?= $this->e($ClassName) ?>s repository object.
+		 * Instantiates a new <?= $this->e($PluralClassName) ?>s repository object.
 		 *
 		 * @param PdoHelper $db
 		 * @param null|Logger $log
@@ -21,27 +21,27 @@
 		public function __construct(PdoHelper $db, null|Logger $log = null) {
 			parent::__construct($db, $log);
 
-			$this->obj = new <?= $this->e($ClassName) ?>($db, $log);
+			$this->obj = new <?= $this->e($PluralClassName) ?>($db, $log);
 
 			return;
 		}
 
 		/**
-		 * Retrieves all <?= $this->e($ClassName) ?>s from the database.
+		 * Retrieves all <?= $this->e($PluralClassName) ?>s from the database.
 		 *
-		 * @return <?= $this->e($ClassName) ?>[]
+		 * @return <?= $this->e($PluralClassName) ?>[]
 		 */
-		public function getAll<?= $this->e($ClassName) ?>s(): array {
+		public function getAll<?= $this->e($PluralClassName) ?>s(): array {
 			$ret = [];
 			$this->tryPdoExcept(function () use (&$ret) {
 				$query = $this->db->query($this->obj->generateClassQuery(BaseDbQueryTypes::SELECT, false));
 
 				while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
-					$ret[] = <?= $this->e($ClassName) ?>::fromArray($row, $this->db, $this->log);
+					$ret[] = <?= $this->e($PluralClassName) ?>::fromArray($row, $this->db, $this->log);
 				}
 
 				return;
-			}, "Failed to get all <?= $this->e($ClassName) ?>s");
+			}, "Failed to get all <?= $this->e($PluralClassName) ?>s");
 
 			return $ret;
 		}
