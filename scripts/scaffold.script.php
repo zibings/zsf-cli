@@ -217,10 +217,10 @@
 					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
 						$connection = $ch->getQueriedInput(
 							'Enter a db connection key',
-							null,
+							'default',
 							'Invalid connection key specified',
 							1,
-							function () { return true; },
+							$validationFuncs['empty'],
 							$sanitationFuncs['trimAndLower']
 						);
 
