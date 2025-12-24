@@ -57,6 +57,18 @@
 		 */
 		abstract public function getModelType() : BaseDbTypes;
 
+		public function getPhpTypeDefaultValue() : string {
+			$type = $this->getPhpType();
+
+			return match ($type) {
+				'int', 'float' => '0',
+				'string'       => "''",
+				'bool'         => 'false',
+				'\DateTimeInterface' => 'new \DateTimeImmutable()',
+				default       => 'null',
+			};
+		}
+
 		/**
 		 * Returns the PHP type for the column.
 		 *
