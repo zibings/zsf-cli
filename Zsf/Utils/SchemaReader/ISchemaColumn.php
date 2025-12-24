@@ -57,6 +57,11 @@
 		 */
 		abstract public function getModelType() : BaseDbTypes;
 
+		/**
+		 * Returns the default value for the PHP type of the column.
+		 *
+		 * @return string
+		 */
 		public function getPhpTypeDefaultValue() : string {
 			$type = $this->getPhpType();
 
