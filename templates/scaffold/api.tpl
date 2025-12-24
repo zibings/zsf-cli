@@ -1,7 +1,7 @@
 <?= '<?php' ?>
 
 
-	namespace <?= '???' ?>;
+	namespace <?= $ApiNamespace ?>;
 
 	use <?= $Namespace ?>\<?= $this->e($ClassName) ?>;
 
@@ -29,20 +29,19 @@
 				return $ret;
 			}
 
-			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
+			<?= str_pad('$entity', $WidestColumnNameLength + 9) ?> = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($Columns as $column): ?>
 <?php if ($column->getPhpType() === 'string'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getString("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getString("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php elseif ($column->getPhpType() === 'int'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getInt("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getInt("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php elseif ($column->getPhpType() === 'bool'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getBool("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getBool("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php elseif ($column->getPhpType() === 'float'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getFloat("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getFloat("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
-
-			$create = $entity->create();
+			<?= str_pad('$create', $WidestColumnNameLength + 9) ?> = $entity->create();
 
 			if ($create->isBad()) {
 				$ret->setAsError('Failed to create <?= $this->e($ClassName) ?>');
@@ -73,20 +72,19 @@
 				return $ret;
 			}
 
-			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
+			<?= str_pad('$entity', $WidestPrimaryKeyNameLength + 9) ?> = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($PrimaryKeys as $pk): ?>
 <?php if ($pk->getPhpType() === 'string'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getString("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getString("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php elseif ($pk->getPhpType() === 'int'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getInt("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getInt("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php elseif ($pk->getPhpType() === 'bool'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getBool("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getBool("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php elseif ($pk->getPhpType() === 'float'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getFloat("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getFloat("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
-
-			$read = $entity->read();
+			<?= str_pad('$read', $WidestPrimaryKeyNameLength + 9) ?> = $entity->read();
 
 			if ($read->isBad()) {
 				$ret->setAsError('Failed to read <?= $this->e($ClassName) ?>');
@@ -117,20 +115,19 @@
 				return $ret;
 			}
 
-			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
+			<?= str_pad('$entity', $WidestColumnNameLength + 9) ?> = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($Columns as $column): ?>
 <?php if ($column->getPhpType() === 'string'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getString("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getString("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php elseif ($column->getPhpType() === 'int'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getInt("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getInt("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php elseif ($column->getPhpType() === 'bool'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getBool("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getBool("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php elseif ($column->getPhpType() === 'float'): ?>
-			$entity-><?= $this->e($column->getName($CamelCase)) ?> = $params->getFloat("<?= $this->e($column->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($column->getName($CamelCase), $WidestColumnNameLength)) ?> = $params->getFloat("<?= $this->e($column->getName($CamelCase)) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
-
-			$update = $entity->update();
+			<?= str_pad('$update', $WidestColumnNameLength + 9) ?> = $entity->update();
 
 			if ($update->isBad()) {
 				$ret->setAsError('Failed to update <?= $this->e($ClassName) ?>');
@@ -161,20 +158,19 @@
 				return $ret;
 			}
 
-			$entity = new <?= $this->e($ClassName) ?>($this->db, $this->log);
+			<?= str_pad('$entity', $WidestPrimaryKeyNameLength + 9) ?> = new <?= $this->e($ClassName) ?>($this->db, $this->log);
 <?php foreach ($PrimaryKeys as $pk): ?>
 <?php if ($pk->getPhpType() === 'string'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getString("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getString("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php elseif ($pk->getPhpType() === 'int'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getInt("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getInt("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php elseif ($pk->getPhpType() === 'bool'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getBool("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getBool("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php elseif ($pk->getPhpType() === 'float'): ?>
-			$entity-><?= $this->e($pk->getName($CamelCase)) ?> = $params->getFloat("<?= $this->e($pk->getName($CamelCase)) ?>");
+			$entity-><?= $this->e(str_pad($pk->getName($CamelCase), $WidestPrimaryKeyNameLength)) ?> = $params->getFloat("<?= $this->e($pk->getName($CamelCase)) ?>");
 <?php endif; ?>
 <?php endforeach; ?>
-
-			$delete = $entity->delete();
+			<?= str_pad('$delete', $WidestPrimaryKeyNameLength + 9) ?> = $entity->delete();
 
 			if ($delete->isBad()) {
 				$ret->setAsError('Failed to delete <?= $this->e($ClassName) ?>');
