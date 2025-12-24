@@ -26,7 +26,7 @@
 			return new ScaffoldArguments(
 				$input['db'],
 				$input['namespace'],
-				$input['overwrite'],
+				$input['overwrite'] ?? false,
 				$input['table'],
 				$input['type'],
 				$input['connection'],
@@ -118,21 +118,15 @@
 
 		public function __getInput(ConsoleHelper $ch) : ScaffoldArguments {
 			$ret = [
-				'db'          => $ch->getParameterWithDefault('db', 'database', '', true),
-				'namespace'   => $ch->getParameterWithDefault('ns', 'namespace', '', true),
-				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
-				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
-				'connection'  => $ch->getParameterWithDefault('c', 'connection', null, true),
+				'db'           => $ch->getParameterWithDefault('db', 'database', '', true),
+				'namespace'    => $ch->getParameterWithDefault('ns', 'namespace', '', true),
+				'table'        => $ch->getParameterWithDefault('table', 'table', '', true),
+				'type'         => $ch->getParameterWithDefault('type', 'type', '', true),
+				'connection'   => $ch->getParameterWithDefault('c', 'connection', null, true),
 				'apiNamespace' => $ch->getParameterWithDefault('api', 'api-namespace', '', true),
+				'overwrite'    => $ch->hasShortLongArg('ow', 'overwrite', true) ? true : null,
+				'camelCase'    => $ch->hasShortLongArg('camel', 'camel-case', true) ? true : null,
 			];
-
-			if ($ch->hasShortLongArg('ow', 'overwrite', true)) {
-				$ret['overwrite'] = true;
-			}
-
-			if ($ch->hasShortLongArg('camel', 'camel-case', true)) {
-				$ret['camelCase'] = true;
-			}
 
 			$validationFuncs = [
 				'empty'  => function (mixed $value) : bool {
@@ -239,7 +233,7 @@
 						return true;
 					},
 					'validation' => function (array $args) use ($validationFuncs) {
-						return !empty($args['connection']) && !empty($args['db']);
+						return !empty($args['connection']);
 					}
 				],
 				'source'       => [
