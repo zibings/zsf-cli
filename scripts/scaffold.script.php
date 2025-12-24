@@ -558,78 +558,51 @@ HELP_TEXT;
 					}
 
 					$makePluralString = function (string $className): string {
-							preg_match_all('/[A-Z][a-z0-9]*/', $className, $matches);
-							$parts = $matches[0];
+						preg_match_all('/[A-Z][a-z0-9]*/', $className, $matches);
+						$parts = $matches[0];
 
-							if (empty($parts)) {
-									return $className;
-							}
+						if (empty($parts)) {
+							return $className;
+						}
 
-							$last = array_pop($parts);
-							$lower = strtolower($last);
+						$last = array_pop($parts);
+						$lower = strtolower($last);
 
-							$irregular = [
-									'person' => 'People',
-									'man'    => 'Men',
-									'woman'  => 'Women',
-									'child'  => 'Children',
-									'mouse'  => 'Mice',
-									'goose'  => 'Geese',
-									'tooth'  => 'Teeth',
-									'foot'   => 'Feet',
-									'ox'     => 'Oxen',
-							];
+						$irregular = [
+							'person' => 'People',
+							'man'    => 'Men',
+							'woman'  => 'Women',
+							'child'  => 'Children',
+							'mouse'  => 'Mice',
+							'goose'  => 'Geese',
+							'tooth'  => 'Teeth',
+							'foot'   => 'Feet',
+							'ox'     => 'Oxen',
+						];
 
-							if (isset($irregular[$lower])) {
-									$plural = $irregular[$lower];
-							} else {
-									switch (true) {
-											case preg_match('/(s|x|z|ch|sh)$/i', $last):
-													$plural = $last . 'es';
-													break;
+						$plural = $irregular[$lower] ?? match (true) {
+							preg_match('/[^aeiou]o$/i', $last), preg_match('/(s|x|z|ch|sh)$/i', $last) => $last . 'es',
+							preg_match('/[^aeiou]y$/i', $last) => substr($last, 0, -1) . 'ies',
+							preg_match('/(fe|f)$/i', $last) => preg_replace('/(fe|f)$/i', 'ves', $last),
+							preg_match('/is$/i', $last) => substr($last, 0, -2) . 'es',
+							preg_match('/us$/i', $last) => substr($last, 0, -2) . 'i',
+							preg_match('/on$/i', $last) => substr($last, 0, -2) . 'a',
+							default => $last . 's',
+						};
 
-											case preg_match('/[^aeiou]y$/i', $last):
-													$plural = substr($last, 0, -1) . 'ies';
-													break;
-													
-											case preg_match('/(fe|f)$/i', $last):
-													$plural = preg_replace('/(fe|f)$/i', 'ves', $last);
-													break;
+						$parts[] = $plural;
 
-											case preg_match('/[^aeiou]o$/i', $last):
-													$plural = $last . 'es';
-													break;
-
-											case preg_match('/is$/i', $last):
-													$plural = substr($last, 0, -2) . 'es';
-													break;
-
-											case preg_match('/us$/i', $last):
-													$plural = substr($last, 0, -2) . 'i';
-													break;
-
-											case preg_match('/on$/i', $last):
-													$plural = substr($last, 0, -2) . 'a';
-													break;
-
-											default:
-													$plural = $last . 's';
-									}
-							}
-
-							$parts[] = $plural;
-							return implode('', $parts);
+						return implode('', $parts);
 					};
 
-
-					$puralClassName = $makePluralString($table);
+					$pluralClassName = $makePluralString($table);
 
 					$tplData = [
 						'CamelCase'                  => $input->camelCase,
 						'Namespace'                  => $input->namespace,
 						'ApiNamespace'               => $input->apiNamespace,
 						'ClassName'                  => $table,
-						'PluralClassName'            => $puralClassName,
+						'PluralClassName'            => $pluralClassName,
 						'Columns'                    => $columns,
 						'WidestColumnNameLength'     => $widestColumnNameLength,
 						'ColumnArgsStrings'          => implode(", ", $columnArgsStrings),
@@ -654,7 +627,7 @@ HELP_TEXT;
 					}
 
 					foreach ($fileCreatePaths as $type => $path) {
-						$filename = $type == "api" ? $puralClassName : $table;
+						$filename = $type == "api" ? $pluralClassName : $table;
 						$ch->putLine('  Generating ' . $type . ' file...');
 
 						$engine     = new \League\Plates\Engine($fh->pathJoin($tplRootPath), 'tpl');
