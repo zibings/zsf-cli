@@ -16,6 +16,7 @@
 <?php endforeach; ?>
 
 
+<?php if (count($PrimaryKeys) > 0): ?>
 		/**
 		 * Static method to retrieve a <?= $this->e($ClassName) ?> by primary key.
 		 *
@@ -38,7 +39,7 @@
 
 			return $ret;
 		}
-
+<?php endif; ?>
 
 		/**
  		 * Determines if the system should attempt to create a <?= $this->e($ClassName) ?> in the database.
