@@ -340,6 +340,8 @@
 					if (!$argValue['query']()) {
 						$ch->putLine();
 						$ch->putLine("Aborting script execution, " . $argValue['error']);
+
+						exit;
 					}
 				}
 			}
