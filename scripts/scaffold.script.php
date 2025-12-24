@@ -25,13 +25,13 @@
 		public static function fromArray(array $input) : ScaffoldArguments {
 			return new ScaffoldArguments(
 				$input['db'],
-				$input['interactive'],
 				$input['namespace'],
 				$input['overwrite'],
 				$input['table'],
 				$input['type'],
 				$input['connection'],
-				$input['camelCase'] ?? false
+				$input['camelCase'] ?? false,
+				$input['apiNamespace'] ?? '',
 			);
 		}
 
@@ -50,13 +50,13 @@
 		 */
 		public function __construct(
 			public string $db,
-			public bool $interactive,
 			public string $namespace,
 			public bool $overwrite,
 			public string $table,
 			public string $type,
 			public null|string $connection,
-			public bool $camelCase = false
+			public bool $camelCase = false,
+			public string $apiNamespace = '',
 		) {
 			return;
 		}
@@ -120,13 +120,19 @@
 			$ret = [
 				'db'          => $ch->getParameterWithDefault('db', 'database', '', true),
 				'namespace'   => $ch->getParameterWithDefault('ns', 'namespace', '', true),
-				'overwrite'   => $ch->hasShortLongArg('ow', 'overwrite', true),
 				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
 				'connection'  => $ch->getParameterWithDefault('c', 'connection', null, true),
-				'camelCase'   => $ch->getParameterWithDefault('camel', 'camel-case', false, true),
 				'apiNamespace' => $ch->getParameterWithDefault('api', 'api-namespace', '', true),
 			];
+
+			if ($ch->hasShortLongArg('ow', 'overwrite', true)) {
+				$ret['overwrite'] = true;
+			}
+
+			if ($ch->hasShortLongArg('camel', 'camel-case', true)) {
+				$ret['camelCase'] = true;
+			}
 
 			$validationFuncs = [
 				'empty'  => function (mixed $value) : bool {
@@ -161,10 +167,9 @@
 				}
 			];
 
-			$maxTries = 3;
-
-			$requiredArgsSatisfied = true;
-			$requiredArgs          = [
+			$maxTries       = 3;
+			$wasInteractive = false;
+			$requiredArgs   = [
 				'namespace'    => [
 					'error'      => 'Namespace is required for scaffolding operations',
 					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
@@ -178,9 +183,6 @@
 						);
 
 						if ($namespace->isBad()) {
-							$ch->putLine();
-							$ch->putLine('Aborting script execution, invalid namespace specified');
-
 							return false;
 						}
 
@@ -189,7 +191,7 @@
 						return true;
 					},
 					'validation' => function (array $args) use ($validationFuncs) {
-						return !$validationFuncs['empty']($args['namespace']);
+						return !empty($args['namespace']);
 					}
 				],
 				'type'         => [
@@ -205,9 +207,6 @@
 						);
 
 						if ($type->isBad()) {
-							$ch->putLine();
-							$ch->putLine('Aborting script execution, invalid type specified. Valid types are: model, repo, api, all');
-
 							return false;
 						}
 
@@ -216,7 +215,7 @@
 						return true;
 					},
 					'validation' => function (array $args) use ($validationFuncs) {
-						return !$validationFuncs['type']($args['type']);
+						return $validationFuncs['type']($args['type']);
 					}
 				],
 				'connection'   => [
@@ -237,6 +236,15 @@
 
 						$ret['connection'] = $connection->getResults()[0];
 
+						return true;
+					},
+					'validation' => function (array $args) use ($validationFuncs) {
+						return !empty($args['connection']) && !empty($args['db']);
+					}
+				],
+				'source'       => [
+					'error'      => 'Either a database or table name is required for scaffolding operations',
+					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
 						$db = $ch->getQueriedInput(
 							'Please enter a database name',
 							null,
@@ -252,15 +260,6 @@
 
 						$ret['db'] = $db->getResults()[0];
 
-						return true;
-					},
-					'validation' => function (array $args) use ($validationFuncs) {
-						return !$validationFuncs['empty']($args['connection']) && !$validationFuncs['empty']($args['db']);
-					}
-				],
-				'source'       => [
-					'error'      => 'Either a database or table name is required for scaffolding operations',
-					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
 						$source = $ch->getQueriedInput(
 							'Would you like to generate from a specific table?',
 							'(y)es, (n)o',
@@ -271,10 +270,7 @@
 						);
 
 						if ($source->isBad()) {
-							$ch->putLine();
-							$ch->putLine('Aborting script execution, invalid source specified. Valid sources are: database, table');
-
-							exit;
+							return false;
 						}
 
 						$source = $source->getResults()[0];
@@ -312,58 +308,91 @@
 
 						return true;
 					}
+				],
+				'apiNamespace' => [
+					'error'      => 'API Namespace is required for API scaffolding operations',
+					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
+						$apiNamespace = $ch->getQueriedInput(
+							'Enter a namespace for the generated API files',
+							null,
+							'Invalid namespace specified',
+							$maxTries,
+							$validationFuncs['empty'],
+							$sanitationFuncs['trim']
+						);
+
+						if ($apiNamespace->isBad()) {
+							return false;
+						}
+
+						$ret['apiNamespace'] = $apiNamespace->getResults()[0];
+
+						return true;
+					},
+					'validation' => function (array $args) use ($validationFuncs) {
+						if ($args['type'] == 'api' || $args['type'] == 'all') {
+							return !empty($args['apiNamespace']);
+						}
+
+						return true;
+					}
 				]
 			];
 
 			foreach ($requiredArgs as $argValue) {
-				if (!$argValue['validation']($ret) && !$argValue['query']()) {
-					$requiredArgsSatisfied = false;
+				if (!$argValue['validation']($ret)) {
+					$wasInteractive = true;
 
-					break;
+					if (!$argValue['query']()) {
+						$ch->putLine();
+						$ch->putLine("Aborting script execution, " . $argValue['error']);
+					}
 				}
 			}
 
-			if ($requiredArgsSatisfied) {
+			if (!$wasInteractive) {
 				return ScaffoldArguments::fromArray($ret);
 			}
 
-			// TODO: Figure out what to do here?  We'd only get here atm if we didn't have a required arg, which means we'd be broken?  - Andy
+			if (!isset($ret['overwrite'])) {
+				$overwrite = $ch->getQueriedInput(
+					'Would you like to overwrite existing files?',
+					'(y)es, (n)o',
+					'Invalid input specified. Valid inputs are: yes, no, y, or n',
+					$maxTries,
+					$validationFuncs['yesno'],
+					$sanitationFuncs['yesno']
+				);
 
-			$overwrite = $ch->getQueriedInput(
-				'Would you like to overwrite existing files?',
-				'(y)es, (n)o',
-				'Invalid input specified. Valid inputs are: yes, no, y, or n',
-				$maxTries,
-				$validationFuncs['yesno'],
-				$sanitationFuncs['yesno']
-			);
+				if ($overwrite->isBad()) {
+					$ch->putLine();
+					$ch->putLine('Aborting script execution, invalid input specified. Valid inputs are: yes, no');
 
-			if ($overwrite->isBad()) {
-				$ch->putLine();
-				$ch->putLine('Aborting script execution, invalid input specified. Valid inputs are: yes, no');
+					exit;
+				}
 
-				exit;
+				$ret['overwrite'] = $overwrite->getResults()[0] == 'yes' || $overwrite->getResults()[0] == 'y';
 			}
 
-			$ret['overwrite'] = $overwrite->getResults()[0] == 'yes' || $overwrite->getResults()[0] == 'y';
+			if (!isset($ret['camelCase'])) {
+				$camelCase = $ch->getQueriedInput(
+					'Would you like to output properties in camelCase?',
+					'(y)es, (n)o',
+					'Invalid input specified. Valid inputs are: yes, no, y, or n',
+					$maxTries,
+					$validationFuncs['yesno'],
+					$sanitationFuncs['yesno']
+				);
 
-			$camelCase = $ch->getQueriedInput(
-				'Would you like to output properties in camelCase?',
-				'(y)es, (n)o',
-				'Invalid input specified. Valid inputs are: yes, no, y, or n',
-				$maxTries,
-				$validationFuncs['yesno'],
-				$sanitationFuncs['yesno']
-			);
+				if ($camelCase->isBad()) {
+					$ch->putLine();
+					$ch->putLine('Aborting script execution, invalid input specified. Valid inputs are: yes, no');
 
-			if ($camelCase->isBad()) {
-				$ch->putLine();
-				$ch->putLine('Aborting script execution, invalid input specified. Valid inputs are: yes, no');
+					exit;
+				}
 
-				exit;
+				$ret['camelCase'] = $camelCase->getResults()[0] == 'yes' || $camelCase->getResults()[0] == 'y';
 			}
-
-			$ret['camelCase'] = $camelCase->getResults()[0] == 'yes' || $camelCase->getResults()[0] == 'y';
 
 			return ScaffoldArguments::fromArray($ret);
 		}
@@ -409,13 +438,13 @@ HELP_TEXT;
 			$input = $this->__getInput($ch);
 
 			$ch->putLine('Input:');
-			$ch->putLine('  Type:        ' . $input->type);
-			$ch->putLine('  Table:       ' . $input->table ?? 'N/A');
-			$ch->putLine('  Database:    ' . $input->db ?? 'N/A');
-			$ch->putLine('  Namespace:   ' . $input->namespace);
-			$ch->putLine('  Connection:  ' . $input->connection ?? 'N/A');
-			$ch->putLine('  Overwrite:   ' . ($input->overwrite ? 'true' : 'false'));
-			$ch->putLine('  Interactive: ' . (!$input->interactive ? 'true' : 'false'));
+			$ch->putLine('  Type:          ' . $input->type);
+			$ch->putLine('  Table:         ' . $input->table ?? 'N/A');
+			$ch->putLine('  Database:      ' . $input->db ?? 'N/A');
+			$ch->putLine('  Namespace:     ' . $input->namespace);
+			$ch->putLine('  API Namespace: ' . $input->apiNamespace);
+			$ch->putLine('  Connection:    ' . $input->connection ?? 'N/A');
+			$ch->putLine('  Overwrite:     ' . ($input->overwrite ? 'true' : 'false'));
 			$ch->putLine();
 
 			$db = $this->__getDb($input, $ch, $config);
@@ -504,6 +533,8 @@ HELP_TEXT;
 				foreach ($reader->tables as $table => $columns) {
 					$ch->putLine('Generating Table Data: ' . $table);
 
+					$widestColumnNameLength     = 0;
+					$widestPrimaryKeyNameLength = 0;
 					$columnArgsStrings          = [];
 					$primaryKeys                = [];
 					$primaryKeyArgsStrings      = [];
@@ -511,10 +542,19 @@ HELP_TEXT;
 					$primaryKeyArgsWithoutTypes = [];
 
 					foreach ($columns as $column) {
+						$colNameLength       = strlen($column->getName($input->camelCase));
 						$columnArgsStrings[] = "'" . $column->getName($input->camelCase) . "'";
+
+						if ($colNameLength > $widestColumnNameLength) {
+							$widestColumnNameLength = $colNameLength;
+						}
 
 						foreach ($column->getFlags() as $flag) {
 							if ($flag->is(BaseDbColumnFlags::IS_KEY)) {
+								if ($colNameLength > $widestPrimaryKeyNameLength) {
+									$widestPrimaryKeyNameLength = $colNameLength;
+								}
+
 								$primaryKeys[]                = $column;
 								$primaryKeyArgsWithoutTypes[] = $column->getName($input->camelCase);
 								$primaryKeyArgsStrings[]      = "'" . $column->getName($input->camelCase) . "'";
@@ -524,16 +564,19 @@ HELP_TEXT;
 					}
 
 					$tplData = [
-						'CamelCase'               => $input->camelCase,
-						'Namespace'               => $input->namespace,
-						'ClassName'               => $table,
-						'Columns'                 => $columns,
-						'ColumnArgsStrings'       => implode(", ", $columnArgsStrings),
-						'PrimaryKeys'             => $primaryKeys,
-						'PrimaryKeyArgsStrings'   => implode(", ", $primaryKeyArgsStrings),
-						'FromPrimaryKey'          => implode("_", $primaryKeyArgsWithoutTypes),
-						'PrimaryKeyArgs'          => implode(", ", $primaryKeyArgsWithoutTypes),
-						'PrimaryKeyArgsWithTypes' => implode(", ", $primaryKeyArgsWithTypes),
+						'CamelCase'                  => $input->camelCase,
+						'Namespace'                  => $input->namespace,
+						'ApiNamespace'               => $input->apiNamespace,
+						'ClassName'                  => $table,
+						'Columns'                    => $columns,
+						'WidestColumnNameLength'     => $widestColumnNameLength,
+						'ColumnArgsStrings'          => implode(", ", $columnArgsStrings),
+						'PrimaryKeys'                => $primaryKeys,
+						'WidestPrimaryKeyNameLength' => $widestPrimaryKeyNameLength,
+						'PrimaryKeyArgsStrings'      => implode(", ", $primaryKeyArgsStrings),
+						'FromPrimaryKey'             => implode("_", $primaryKeyArgsWithoutTypes),
+						'PrimaryKeyArgs'             => implode(", ", $primaryKeyArgsWithoutTypes),
+						'PrimaryKeyArgsWithTypes'    => implode(", ", $primaryKeyArgsWithTypes),
 					];
 
 					$tplRootPath = '~/templates/scaffold';
