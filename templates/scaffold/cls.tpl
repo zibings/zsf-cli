@@ -25,7 +25,7 @@
 		 * @throws \Exception
 		 * @return <?= $this->e($ClassName) ?>
 		 */
-		public static function from<?= $this->e(ucfirst($FromPrimaryKey)) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>, PdoHelper $db, null|Logger $log = null): <?= $this->e($ClassName) ?> {
+		public static function from<?= $this->e(ucfirst($FromPrimaryKey)) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>, PdoHelper $db, null|Logger $log = null) : <?= $this->e($ClassName) ?> {
 			$ret = new <?= $this->e($ClassName) ?>($db, $log);
 <?php foreach ($PrimaryKeys as $pk): ?>
 			$ret-><?= $this->e($pk->getName($CamelCase)) ?> = $<?= $this->e($pk->getName($CamelCase)) ?>;
