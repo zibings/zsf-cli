@@ -122,7 +122,7 @@
 				'namespace'    => $ch->getParameterWithDefault('ns', 'namespace', '', true),
 				'table'        => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'         => $ch->getParameterWithDefault('type', 'type', '', true),
-				'connection'   => $ch->getParameterWithDefault('c', 'connection', null, true),
+				'connection'   => $ch->getParameterWithDefault('c', 'connection', 'default', true),
 				'apiNamespace' => $ch->getParameterWithDefault('api', 'api-namespace', '', true),
 				'overwrite'    => $ch->hasShortLongArg('ow', 'overwrite', true) ? true : null,
 				'camelCase'    => $ch->hasShortLongArg('camel', 'camel-case', true) ? true : null,
