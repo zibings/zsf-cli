@@ -15,10 +15,10 @@
 		/**
 		 * Instantiates a new <?= $this->e($ClassName) ?>s repository object.
 		 *
-		 * @param \PdoHelper $db
+		 * @param PdoHelper $db
 		 * @param null|Logger $log
 		 */
-		public function __construct(\PdoHelper $db, null|Logger $log = null) {
+		public function __construct(PdoHelper $db, null|Logger $log = null) {
 			parent::__construct($db, $log);
 
 			$this->obj = new <?= $this->e($ClassName) ?>($db, $log);
