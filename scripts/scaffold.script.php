@@ -119,13 +119,13 @@
 		public function __getInput(ConsoleHelper $ch) : ScaffoldArguments {
 			$ret = [
 				'db'          => $ch->getParameterWithDefault('db', 'database', '', true),
-				'interactive' => $ch->getParameterWithDefault('ni', 'non-interactive', false, true),
 				'namespace'   => $ch->getParameterWithDefault('ns', 'namespace', '', true),
 				'overwrite'   => $ch->hasShortLongArg('ow', 'overwrite', true),
 				'table'       => $ch->getParameterWithDefault('table', 'table', '', true),
 				'type'        => $ch->getParameterWithDefault('type', 'type', '', true),
 				'connection'  => $ch->getParameterWithDefault('c', 'connection', null, true),
 				'camelCase'   => $ch->getParameterWithDefault('camel', 'camel-case', false, true),
+				'apiNamespace' => $ch->getParameterWithDefault('api', 'api-namespace', '', true),
 			];
 
 			$validationFuncs = [
@@ -161,138 +161,173 @@
 				}
 			];
 
-			if ($ret['interactive']) {
-				if (!$validationFuncs['type']($ret['type'])) {
-					$ch->putLine('Aborting script execution, invalid type specified. Valid types are: model, repo, api, all');
+			$maxTries = 3;
 
-					exit;
+			$requiredArgsSatisfied = true;
+			$requiredArgs          = [
+				'namespace'    => [
+					'error'      => 'Namespace is required for scaffolding operations',
+					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
+						$namespace = $ch->getQueriedInput(
+							'Please enter a namespace for the generated files',
+							null,
+							'Invalid namespace specified',
+							$maxTries,
+							$validationFuncs['empty'],
+							$sanitationFuncs['trim']
+						);
+
+						if ($namespace->isBad()) {
+							$ch->putLine();
+							$ch->putLine('Aborting script execution, invalid namespace specified');
+
+							return false;
+						}
+
+						$ret['namespace'] = $namespace->getResults()[0];
+
+						return true;
+					},
+					'validation' => function (array $args) use ($validationFuncs) {
+						return !$validationFuncs['empty']($args['namespace']);
+					}
+				],
+				'type'         => [
+					'error'      => 'Type is required for scaffolding operations',
+					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
+						$type = $ch->getQueriedInput(
+							'What type of scaffolding do you want to generate?',
+							'model, repo, api, all',
+							'Invalid type specified. Valid types are: model, repo, api, all',
+							$maxTries,
+							$validationFuncs['type'],
+							$sanitationFuncs['trimAndLower']
+						);
+
+						if ($type->isBad()) {
+							$ch->putLine();
+							$ch->putLine('Aborting script execution, invalid type specified. Valid types are: model, repo, api, all');
+
+							return false;
+						}
+
+						$ret['type'] = $type->getResults()[0];
+
+						return true;
+					},
+					'validation' => function (array $args) use ($validationFuncs) {
+						return !$validationFuncs['type']($args['type']);
+					}
+				],
+				'connection'   => [
+					'error'      => 'Database connection key and name are required for scaffolding operations',
+					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
+						$connection = $ch->getQueriedInput(
+							'Enter a db connection key',
+							null,
+							'Invalid connection key specified',
+							1,
+							function () { return true; },
+							$sanitationFuncs['trimAndLower']
+						);
+
+						if ($connection->isBad()) {
+							return false;
+						}
+
+						$ret['connection'] = $connection->getResults()[0];
+
+						$db = $ch->getQueriedInput(
+							'Please enter a database name',
+							null,
+							'Invalid database name specified',
+							$maxTries,
+							$validationFuncs['empty'],
+							$sanitationFuncs['trim']
+						);
+
+						if ($db->isBad()) {
+							return false;
+						}
+
+						$ret['db'] = $db->getResults()[0];
+
+						return true;
+					},
+					'validation' => function (array $args) use ($validationFuncs) {
+						return !$validationFuncs['empty']($args['connection']) && !$validationFuncs['empty']($args['db']);
+					}
+				],
+				'source'       => [
+					'error'      => 'Either a database or table name is required for scaffolding operations',
+					'query'      => function () use (&$ret, $maxTries, $validationFuncs, $sanitationFuncs, $ch) {
+						$source = $ch->getQueriedInput(
+							'Would you like to generate from a specific table?',
+							'(y)es, (n)o',
+							'Invalid input specified. Valid inputs are: yes, no, y, or n',
+							$maxTries,
+							$validationFuncs['yesno'],
+							$sanitationFuncs['yesno']
+						);
+
+						if ($source->isBad()) {
+							$ch->putLine();
+							$ch->putLine('Aborting script execution, invalid source specified. Valid sources are: database, table');
+
+							exit;
+						}
+
+						$source = $source->getResults()[0];
+
+						if ($source == 'yes') {
+							$table = $ch->getQueriedInput(
+								'Please enter a table name',
+								null,
+								'Invalid table name specified',
+								$maxTries,
+								$validationFuncs['empty'],
+								$sanitationFuncs['trim']
+							);
+
+							if ($table->isBad()) {
+								$ch->putLine();
+								$ch->putLine('Aborting script execution, invalid table name specified');
+
+								exit;
+							}
+
+							$ret['table'] = $table->getResults()[0];
+						}
+
+						return true;
+					},
+					'validation' => function (array $args) use ($validationFuncs) {
+						if (empty($args['db']) && empty($args['table'])) {
+							return false;
+						}
+
+						if (!empty($args['table']) && empty($args['db'])) {
+							return false;
+						}
+
+						return true;
+					}
+				]
+			];
+
+			foreach ($requiredArgs as $argValue) {
+				if (!$argValue['validation']($ret) && !$argValue['query']()) {
+					$requiredArgsSatisfied = false;
+
+					break;
 				}
+			}
 
-				if (empty($ret['db']) && empty($ret['table'])) {
-					$ch->putLine('Aborting script execution, no source specified. Must include either `database` or `table` source name');
-
-					exit;
-				}
-
-				if (!empty($ret['table']) && empty($ret['db'])) {
-					$ch->putLine('Aborting script execution, no database specified. Must include a database name if using a table source');
-
-					exit;
-				}
-
-				if (empty($ret['namespace'])) {
-					$ch->putLine('Aborting script execution, no namespace specified');
-
-					exit;
-				}
-
+			if ($requiredArgsSatisfied) {
 				return ScaffoldArguments::fromArray($ret);
 			}
 
-			$maxTries = 3;
-
-			$type = $ch->getQueriedInput(
-				'What type of scaffolding do you want to generate?',
-				'model, repo, api, all',
-				'Invalid type specified. Valid types are: model, repo, api, all',
-				$maxTries,
-				$validationFuncs['type'],
-				$sanitationFuncs['trimAndLower']
-			);
-
-			if ($type->isBad()) {
-				$ch->putLine();
-				$ch->putLine('Aborting script execution, invalid type specified. Valid types are: model, repo, api, all');
-
-				exit;
-			}
-
-			$ret['type'] = $type->getResults()[0];
-
-			$db = $ch->getQueriedInput(
-				'Please enter a database name',
-				null,
-				'Invalid database name specified',
-				$maxTries,
-				$validationFuncs['empty'],
-				$sanitationFuncs['trim']
-			);
-
-			if ($db->isBad()) {
-				$ch->putLine();
-				$ch->putLine('Aborting script execution, invalid database name specified');
-
-				exit;
-			}
-
-			$ret['db'] = $db->getResults()[0];
-
-			$source = $ch->getQueriedInput(
-				'Would you like to generate from a specific table?',
-				'(y)es, (n)o',
-				'Invalid input specified. Valid inputs are: yes, no, y, or n',
-				$maxTries,
-				$validationFuncs['yesno'],
-				$sanitationFuncs['yesno']
-			);
-
-			if ($source->isBad()) {
-				$ch->putLine();
-				$ch->putLine('Aborting script execution, invalid source specified. Valid sources are: database, table');
-
-				exit;
-			}
-
-			$source = $source->getResults()[0];
-
-			if ($source == 'yes') {
-				$table = $ch->getQueriedInput(
-					'Please enter a table name',
-					null,
-					'Invalid table name specified',
-					$maxTries,
-					$validationFuncs['empty'],
-					$sanitationFuncs['trim']
-				);
-
-				if ($table->isBad()) {
-					$ch->putLine();
-					$ch->putLine('Aborting script execution, invalid table name specified');
-
-					exit;
-				}
-
-				$ret['table'] = $table->getResults()[0];
-			}
-
-			$connection = $ch->getQueriedInput(
-				'Enter a db connection key',
-				null,
-				'Invalid connection key specified',
-				1,
-				function () { return true; },
-				$sanitationFuncs['trimAndLower']
-			);
-
-			$ret['connection'] = $connection->getResults()[0];
-
-			$namespace = $ch->getQueriedInput(
-				'Please enter a namespace for the generated files',
-				null,
-				'Invalid namespace specified',
-				$maxTries,
-				$validationFuncs['empty'],
-				$sanitationFuncs['trim']
-			);
-
-			if ($namespace->isBad()) {
-				$ch->putLine();
-				$ch->putLine('Aborting script execution, invalid namespace specified');
-
-				exit;
-			}
-
-			$ret['namespace'] = $namespace->getResults()[0];
+			// TODO: Figure out what to do here?  We'd only get here atm if we didn't have a required arg, which means we'd be broken?  - Andy
 
 			$overwrite = $ch->getQueriedInput(
 				'Would you like to overwrite existing files?',
@@ -348,7 +383,7 @@ Interactive Usage:     vendor/bin/zsf-cli scaffold
 Non-Interactive Usage: vendor/bin/zsf-cli scaffold --type=model --db=db_name --table=table_name --namespace=namespace
                        vendor/bin/zsf-cli scaffold --type=repo --db=db_name --namespace=namespace
                        vendor/bin/zsf-cli scaffold --type=api --db=db_name --overwrite --namespace=namespace
-                       vendor/bin/zsf-cli scaffold --type=all --db=db_name --namespace=namespace
+                       vendor/bin/zsf-cli scaffold --type=all --db=db_name --namespace=namespace --camel-case
 HELP_TEXT;
 		}
 
