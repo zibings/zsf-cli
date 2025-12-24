@@ -19,18 +19,22 @@
 		/**
 		 * Static method to retrieve a <?= $this->e($ClassName) ?> by primary key.
 		 *
-		 * @param <?= $this->e($PrimaryKeyArgsWithTypes) ?> Primary key components.
+		 * @param <?= $this->e($PrimaryKeyArgsWithTypes) ?> Primary key value.
 		 * @param PdoHelper $db Database connection to use.
 		 * @param null|Logger $log Optional logger to use.
 		 * @throws \Exception
 		 * @return <?= $this->e($ClassName) ?>
+
 		 */
 		public static function from<?= $this->e(ucfirst($FromPrimaryKey)) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>, PdoHelper $db, null|Logger $log = null) : <?= $this->e($ClassName) ?> {
 			$ret = new <?= $this->e($ClassName) ?>($db, $log);
 <?php foreach ($PrimaryKeys as $pk): ?>
 			$ret-><?= $this->e($pk->getName($CamelCase)) ?> = $<?= $this->e($pk->getName($CamelCase)) ?>;
 <?php endforeach; ?>
-			$ret->read();
+
+			if ($ret->read()->isBad()) {
+				$ret-><?= $this->e($PrimaryKeys[0]->getName($CamelCase)) ?> = <?= $this->e($PrimaryKeys[0]->getPhpTypeDefaultValue()) ?>;
+			}
 
 			return $ret;
 		}
