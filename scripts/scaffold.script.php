@@ -30,7 +30,7 @@
 				$input['table'],
 				$input['type'],
 				$input['connection'],
-				$input['camelCase'] ?? false,
+				$input['preserveCase'] ?? false,
 				$input['apiNamespace'] ?? '',
 			);
 		}
@@ -40,13 +40,13 @@
 		 * Instantiates a ScaffoldArguments object with the provided parameters.
 		 *
 		 * @param string $db
-		 * @param bool $interactive
 		 * @param string $namespace
 		 * @param bool $overwrite
 		 * @param string $table
 		 * @param string $type
 		 * @param null|string $connection
-		 * @param bool $camelCase
+		 * @param bool $preserveCase
+		 * @param string $apiNamespace
 		 */
 		public function __construct(
 			public string $db,
@@ -55,7 +55,7 @@
 			public string $table,
 			public string $type,
 			public null|string $connection,
-			public bool $camelCase = false,
+			public bool $preserveCase = false,
 			public string $apiNamespace = '',
 		) {
 			return;
@@ -125,7 +125,7 @@
 				'connection'   => $ch->getParameterWithDefault('c', 'connection', 'default', true),
 				'apiNamespace' => $ch->getParameterWithDefault('api', 'api-namespace', '', true),
 				'overwrite'    => $ch->hasShortLongArg('ow', 'overwrite', true) ? true : null,
-				'camelCase'    => $ch->hasShortLongArg('camel', 'camel-case', true) ? true : null,
+				'preserveCase' => $ch->hasShortLongArg('preserve', 'preserve-case', true) ? true : null,
 			];
 
 			$validationFuncs = [
@@ -370,9 +370,9 @@
 				$ret['overwrite'] = $overwrite->getResults()[0] == 'yes' || $overwrite->getResults()[0] == 'y';
 			}
 
-			if (!isset($ret['camelCase'])) {
-				$camelCase = $ch->getQueriedInput(
-					'Would you like to output properties in camelCase?',
+			if (!isset($ret['preserveCase'])) {
+				$preserveCase = $ch->getQueriedInput(
+					'Would you like to preserve the case of output properties?',
 					'(y)es, (n)o',
 					'Invalid input specified. Valid inputs are: yes, no, y, or n',
 					$maxTries,
@@ -380,14 +380,14 @@
 					$sanitationFuncs['yesno']
 				);
 
-				if ($camelCase->isBad()) {
+				if ($preserveCase->isBad()) {
 					$ch->putLine();
 					$ch->putLine('Aborting script execution, invalid input specified. Valid inputs are: yes, no');
 
 					exit;
 				}
 
-				$ret['camelCase'] = $camelCase->getResults()[0] == 'yes' || $camelCase->getResults()[0] == 'y';
+				$ret['preserveCase'] = $preserveCase->getResults()[0] == 'yes' || $preserveCase->getResults()[0] == 'y';
 			}
 
 			return ScaffoldArguments::fromArray($ret);
@@ -441,6 +441,7 @@ HELP_TEXT;
 			$ch->putLine('  API Namespace: ' . $input->apiNamespace);
 			$ch->putLine('  Connection:    ' . $input->connection ?? 'N/A');
 			$ch->putLine('  Overwrite:     ' . ($input->overwrite ? 'true' : 'false'));
+			$ch->putLine('  Preserve Case: ' . ($input->preserveCase ? 'true' : 'false'));
 			$ch->putLine();
 
 			$db = $this->__getDb($input, $ch, $config);
@@ -538,8 +539,8 @@ HELP_TEXT;
 					$primaryKeyArgsWithoutTypes = [];
 
 					foreach ($columns as $column) {
-						$colNameLength       = strlen($column->getName($input->camelCase));
-						$columnArgsStrings[] = "'" . $column->getName($input->camelCase) . "'";
+						$colNameLength       = strlen($column->getName($input->preserveCase));
+						$columnArgsStrings[] = "'" . $column->getName($input->preserveCase) . "'";
 
 						if ($colNameLength > $widestColumnNameLength) {
 							$widestColumnNameLength = $colNameLength;
@@ -552,9 +553,9 @@ HELP_TEXT;
 								}
 
 								$primaryKeys[]                = $column;
-								$primaryKeyArgsWithoutTypes[] = $column->getName($input->camelCase);
-								$primaryKeyArgsStrings[]      = "'" . $column->getName($input->camelCase) . "'";
-								$primaryKeyArgsWithTypes[]    = $column->getPhpType() . " $" . $column->getName($input->camelCase);
+								$primaryKeyArgsWithoutTypes[] = $column->getName($input->preserveCase);
+								$primaryKeyArgsStrings[]      = "'" . $column->getName($input->preserveCase) . "'";
+								$primaryKeyArgsWithTypes[]    = $column->getPhpType() . " $" . $column->getName($input->preserveCase);
 							}
 						}
 					}
@@ -571,15 +572,35 @@ HELP_TEXT;
 						$lower = strtolower($last);
 
 						$irregular = [
-							'person' => 'People',
-							'man'    => 'Men',
-							'woman'  => 'Women',
-							'child'  => 'Children',
-							'mouse'  => 'Mice',
-							'goose'  => 'Geese',
-							'tooth'  => 'Teeth',
-							'foot'   => 'Feet',
-							'ox'     => 'Oxen',
+							'person'     => 'people',
+							'man'        => 'men',
+							'woman'      => 'women',
+							'child'      => 'children',
+							'tooth'      => 'teeth',
+							'foot'       => 'feet',
+							'mouse'      => 'mice',
+							'goose'      => 'geese',
+							'ox'         => 'oxen',
+							'leaf'       => 'leaves',
+							'life'       => 'lives',
+							'knife'      => 'knives',
+							'wife'       => 'wives',
+							'half'       => 'halves',
+							'elf'        => 'elves',
+							'loaf'       => 'loaves',
+							'potato'     => 'potatoes',
+							'tomato'     => 'tomatoes',
+							'cactus'     => 'cacti',
+							'focus'      => 'foci',
+							'fungus'     => 'fungi',
+							'nucleus'    => 'nuclei',
+							'syllabus'   => 'syllabi',
+							'analysis'   => 'analyses',
+							'diagnosis'  => 'diagnoses',
+							'thesis'     => 'theses',
+							'phenomenon' => 'phenomena',
+							'criterion'  => 'criteria',
+							'datum'      => 'data'
 						];
 
 						$plural = $irregular[$lower] ?? match (true) {
@@ -600,7 +621,7 @@ HELP_TEXT;
 					$pluralClassName = $makePluralString($table);
 
 					$tplData = [
-						'CamelCase'                  => $input->camelCase,
+						'PreserveCase'               => $input->preserveCase,
 						'Namespace'                  => $input->namespace,
 						'ApiNamespace'               => $input->apiNamespace,
 						'ClassName'                  => $table,

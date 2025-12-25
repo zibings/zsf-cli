@@ -39,15 +39,15 @@
 		/**
 		 * Returns the name of the column.
 		 *
-		 * @param bool $camelCase Optional flag to return the name in camelCase format.
+		 * @param bool $preserveCase Optional flag to preserve casing on the returned name.
 		 * @return string
 		 */
-		public function getName(bool $camelCase = false) : string {
-			if ($camelCase) {
-				return $this->toCamelCase($this->data['name']) ?? '!!ERROR!!';
+		public function getName(bool $preserveCase = false) : string {
+			if ($preserveCase) {
+				return $this->data['name'] ?? '!!ERROR!!';
 			}
 
-			return $this->data['name'] ?? '!!ERROR!!';
+			return $this->toCamelCase($this->data['name']) ?? '!!ERROR!!';
 		}
 
 		/**

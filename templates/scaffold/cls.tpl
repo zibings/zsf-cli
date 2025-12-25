@@ -12,7 +12,7 @@
 
 	class <?= $this->e($ClassName) ?> extends StoicDbModel {
 <?php foreach ($Columns as $column): ?>
-		public <?= $this->e($column->getPhpType()) ?> $<?= $this->e($column->getName($CamelCase)) ?>;
+		public <?= $this->e($column->getPhpType()) ?> $<?= $this->e($column->getName($PreserveCase)) ?>;
 <?php endforeach; ?>
 
 
@@ -30,11 +30,11 @@
 		public static function from<?= $this->e(ucfirst($FromPrimaryKey)) ?>(<?= $this->e($PrimaryKeyArgsWithTypes) ?>, PdoHelper $db, null|Logger $log = null) : <?= $this->e($ClassName) ?> {
 			$ret = new <?= $this->e($ClassName) ?>($db, $log);
 <?php foreach ($PrimaryKeys as $pk): ?>
-			$ret-><?= $this->e($pk->getName($CamelCase)) ?> = $<?= $this->e($pk->getName($CamelCase)) ?>;
+			$ret-><?= $this->e($pk->getName($PreserveCase)) ?> = $<?= $this->e($pk->getName($PreserveCase)) ?>;
 <?php endforeach; ?>
 
 			if ($ret->read()->isBad()) {
-				$ret-><?= $this->e($PrimaryKeys[0]->getName($CamelCase)) ?> = <?= $this->e($PrimaryKeys[0]->getPhpTypeDefaultValue()) ?>;
+				$ret-><?= $this->e($PrimaryKeys[0]->getName($PreserveCase)) ?> = <?= $this->e($PrimaryKeys[0]->getPhpTypeDefaultValue()) ?>;
 			}
 
 			return $ret;
@@ -101,20 +101,20 @@
 		 */
 		protected function __setupModel() : void {
 <?php foreach ($Columns as $column): ?>
-			$this->setColumn('<?= $this->e($column->getName($CamelCase)) ?>', '<?= $this->e($column->getName()) ?>', BaseDbTypes::<?= $this->e($column->getModelType()) ?><?php if (count($column->getFlags()) > 0): ?>, BCF::<?= $this->e(implode(' | BCF::', $column->getFlags())) ?><?php endif; ?>);
+			$this->setColumn('<?= $this->e($column->getName($PreserveCase)) ?>', '<?= $this->e($column->getName()) ?>', BaseDbTypes::<?= $this->e($column->getModelType()) ?><?php if (count($column->getFlags()) > 0): ?>, BCF::<?= $this->e(implode(' | BCF::', $column->getFlags())) ?><?php endif; ?>);
 <?php endforeach; ?>
 
 <?php foreach ($Columns as $column): ?>
 <?php if ($column->getPhpType() === 'string'): ?>
-			$this-><?= $this->e($column->getName($CamelCase)) ?> = "";
+			$this-><?= $this->e($column->getName($PreserveCase)) ?> = "";
 <?php elseif ($column->getPhpType() === 'int'): ?>
-			$this-><?= $this->e($column->getName($CamelCase)) ?> = 0;
+			$this-><?= $this->e($column->getName($PreserveCase)) ?> = 0;
 <?php elseif ($column->getPhpType() === 'bool'): ?>
-			$this-><?= $this->e($column->getName($CamelCase)) ?> = false;
+			$this-><?= $this->e($column->getName($PreserveCase)) ?> = false;
 <?php elseif ($column->getPhpType() === 'float'): ?>
-			$this-><?= $this->e($column->getName($CamelCase)) ?> = 0.0;
+			$this-><?= $this->e($column->getName($PreserveCase)) ?> = 0.0;
 <?php elseif ($column->getPhpType() === '\DateTimeInterface'): ?>
-			$this-><?= $this->e($column->getName($CamelCase)) ?> = new \DateTime('now', new \DateTimeZone('UTC'));
+			$this-><?= $this->e($column->getName($PreserveCase)) ?> = new \DateTime('now', new \DateTimeZone('UTC'));
 <?php endif; ?>
 <?php endforeach; ?>
 
