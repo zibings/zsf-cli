@@ -45,7 +45,7 @@
 			<?= str_pad('$create', $WidestColumnNameLength + 9) ?> = $entity->create();
 
 			if ($create->isBad()) {
-				$ret->setAsError('Failed to create <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $create, 'Failed to create <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -68,7 +68,7 @@
 			$params = $request->getInput();
 
 			if (!$params->hasAll(<?= html_entity_decode($this->e($PrimaryKeyArgsStrings)) ?>)) {
-				$ret->setAsError("Missing required parameters to read <?= $this->e($ClassName) ?>.");
+				$ret->setAsError(" <?= $this->e($ClassName) ?>.");
 
 				return $ret;
 			}
@@ -88,7 +88,7 @@
 			<?= str_pad('$read', $WidestPrimaryKeyNameLength + 9) ?> = $entity->read();
 
 			if ($read->isBad()) {
-				$ret->setAsError('Failed to read <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $read, 'Failed to read <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -131,7 +131,7 @@
 			<?= str_pad('$update', $WidestColumnNameLength + 9) ?> = $entity->update();
 
 			if ($update->isBad()) {
-				$ret->setAsError('Failed to update <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $update, 'Failed to update <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
@@ -174,7 +174,7 @@
 			<?= str_pad('$delete', $WidestPrimaryKeyNameLength + 9) ?> = $entity->delete();
 
 			if ($delete->isBad()) {
-				$ret->setAsError('Failed to delete <?= $this->e($ClassName) ?>');
+				$this->assignReturnHelperError($ret, $delete, 'Failed to delete <?= $this->e($ClassName) ?>');
 
 				return $ret;
 			}
