@@ -650,7 +650,7 @@ HELP_TEXT;
 					}
 
 					foreach ($fileCreatePaths as $type => $path) {
-						$filename = $type == "api" ? $pluralClassName : $table;
+						$filename = ($type == "api" || $type == "rpo") ? $pluralClassName : $table;
 						$ch->putLine('  Generating ' . $type . ' file...');
 
 						$engine     = new \League\Plates\Engine($fh->pathJoin($tplRootPath), 'tpl');
