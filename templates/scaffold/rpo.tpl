@@ -8,12 +8,12 @@
 	use Stoic\Pdo\PdoHelper;
 	use Stoic\Pdo\StoicDbClass;
 
-	class <?= $this->e($PluralClassName) ?>s extends StoicDbClass {
+	class <?= $this->e($PluralClassName) ?> extends StoicDbClass {
 		protected <?= $this->e($PluralClassName) ?> $obj;
 
 
 		/**
-		 * Instantiates a new <?= $this->e($PluralClassName) ?>s repository object.
+		 * Instantiates a new <?= $this->e($PluralClassName) ?> repository object.
 		 *
 		 * @param PdoHelper $db
 		 * @param null|Logger $log
@@ -27,11 +27,11 @@
 		}
 
 		/**
-		 * Retrieves all <?= $this->e($PluralClassName) ?>s from the database.
+		 * Retrieves all <?= $this->e($PluralClassName) ?> from the database.
 		 *
 		 * @return <?= $this->e($PluralClassName) ?>[]
 		 */
-		public function getAll<?= $this->e($PluralClassName) ?>s(): array {
+		public function getAll<?= $this->e($PluralClassName) ?>(): array {
 			$ret = [];
 			$this->tryPdoExcept(function () use (&$ret) {
 				$query = $this->db->query($this->obj->generateClassQuery(BaseDbQueryTypes::SELECT, false));
@@ -41,7 +41,7 @@
 				}
 
 				return;
-			}, "Failed to get all <?= $this->e($PluralClassName) ?>s");
+			}, "Failed to get all <?= $this->e($PluralClassName) ?>");
 
 			return $ret;
 		}
