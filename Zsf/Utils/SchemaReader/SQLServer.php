@@ -8,6 +8,8 @@
 	use Stoic\Pdo\PdoDrivers;
 	use Stoic\Pdo\PdoHelper;
 
+	use Zsf\Utils\Translators\SQLServerTranslator;
+
 	class SqlServerColumn extends ISchemaColumn {
 		/**
 		 * Returns all appropriate flags for the column.
@@ -42,21 +44,17 @@
 		 * @return void
 		 */
 		protected function parseColumn() : void {
+			$translator = new SQLServerTranslator();
+
 			if (isset($this->data['type'])) {
 				$this->modelType = match (strtolower($this->data['type'])) {
-					'int', 'tinyint', 'smallint', 'bigint' => new BaseDbTypes(BaseDbTypes::INTEGER),
+					'int', 'tinyint', 'smallint', 'bigint'                             => new BaseDbTypes(BaseDbTypes::INTEGER),
 					'date', 'datetime', 'datetime2', 'datetimeoffset', 'smalldatetime' => new BaseDbTypes(BaseDbTypes::DATETIME),
-					'bit' => new BaseDbTypes(BaseDbTypes::BOOLEAN),
-					default => new BaseDbTypes(BaseDbTypes::STRING),
+					'bit'                                                              => new BaseDbTypes(BaseDbTypes::BOOLEAN),
+					default                                                            => new BaseDbTypes(BaseDbTypes::STRING),
 				};
 
-				$this->phpType = match (strtolower($this->data['type'])) {
-					'int', 'tinyint', 'smallint', 'bigint' => 'int',
-					'float', 'real', 'decimal', 'money', 'smallmoney' => 'float',
-					'date', 'datetime', 'datetime2', 'datetimeoffset', 'smalldatetime' => '\DateTimeInterface',
-					'bit' => 'bool',
-					default => 'string',
-				};
+				$this->phpType = $translator->toPhpType($this->data['type']);
 			}
 
 			if (isset($this->data['key']) && $this->data['key'] === 'PK') {

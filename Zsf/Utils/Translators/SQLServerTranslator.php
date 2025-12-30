@@ -25,11 +25,11 @@
 
 		public function toPhpType(string $type) : string {
 			return match ($type) {
-				'int', 'bigint', 'smallint', 'tinyint'                   => 'int',
-				'float', 'real', 'decimal', 'numeric'                    => 'float',
-				'bit'                                                    => 'bool',
-				'date', 'datetime', 'datetime2', 'smalldatetime', 'time' => '\DateTimeInterface',
-				default                                                  => 'string',
+				'int', 'bigint', 'smallint', 'tinyint'                                     => 'int',
+				'float', 'real', 'decimal', 'numeric', 'smallmoney'                        => 'float',
+				'bit'                                                                      => 'bool',
+				'date', 'datetime', 'datetime2', 'smalldatetime', 'time', 'datetimeoffset' => '\DateTimeInterface',
+				default                                                                    => 'string',
 			};
 		}
 
