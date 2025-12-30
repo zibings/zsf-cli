@@ -9,18 +9,22 @@
 		"psr-0": {
 			"Zsf\\": "./Zsf",
 			"Zsf\\Utils\\": "./Zsf/Utils",
-			"Zsf\\Utils\\SchemaReader\\": "./Zsf/Utils/SchemaReader"
+			"Zsf\\Utils\\SchemaReader\\": "./Zsf/Utils/SchemaReader",
+			"Zsf\\Utils\\Translators\\": "./Zsf/Utils/Translators"
 		},
 		"psr-4": {
 			"Zsf\\": "./Zsf",
 			"Zsf\\Utils\\": "./Zsf/Utils",
-			"Zsf\\Utils\\SchemaReader\\": "./Zsf/Utils/SchemaReader"
+			"Zsf\\Utils\\SchemaReader\\": "./Zsf/Utils/SchemaReader",
+			"Zsf\\Utils\\Translators\\": "./Zsf/Utils/Translators"
 		},
 		"files": [
 			"scripts/generate.script.php",
 			"scripts/scaffold.script.php",
 			"scripts/version.script.php",
-			"Zsf/Utils/CliFunctions.php"
+			"Zsf/Utils/CliFunctions.php",
+			"Zsf/Utils/RandomFunctions.php",
+			"Zsf/Utils/SchemaReader.php"
 		]
 	},
 	"authors":[
