@@ -3,6 +3,31 @@
 	namespace Zsf\Utils\Translators;
 
 	class JavaScriptTranslator implements ITranslator {
+		public function defaultPhpValue(string $type) : string {
+			return match ($type) {
+				'number'  => '0',
+				'string'  => "''",
+				'boolean' => 'false',
+				'Array'   => '[]',
+				'object'  => '(object)[]',
+				'Date'    => "new \\DateTime('now', new \\DateTimeZone('UTC'))",
+				default   => 'null',
+			};
+		}
+
+		public function defaultTranslatedValue(string $type) : string {
+			return match ($type) {
+				'float'              => '0.0',
+				'int'                => '0',
+				'string'             => "''",
+				'bool'               => 'false',
+				'array'              => '[]',
+				'object'             => '{}',
+				'\DateTimeInterface' => 'new Date()',
+				default              => 'null',
+			};
+		}
+
 		public function toPhpType(string $type) : string {
 			return match ($type) {
 				'number'  => 'float|int',
