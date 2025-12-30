@@ -15,7 +15,7 @@
 	use Zsf\Utils\SchemaReader\SqlServer as SqlServerReader;
 	use Zsf\Utils\ZsfCliScript;
 
-	use function Zsf\Utils\makePluralString;
+	use function Zsf\Utils\pluralizeClassName;
 
 	class ScaffoldArguments {
 		/**
@@ -529,19 +529,6 @@ HELP_TEXT;
 					$reader->parseAllTableColumns($input->db);
 				}
 
-				$pluralizeClassName = function (string $className) : string {
-					preg_match_all('/[A-Z][a-z0-9]*/', $className, $matches);
-					$parts = $matches[0];
-
-					if (empty($parts)) {
-						return $className;
-					}
-
-					$last = array_pop($parts);
-
-					return makePluralString($last);
-				};
-
 				foreach ($reader->tables as $table => $columns) {
 					$ch->putLine('Generating Table Data: ' . $table);
 
@@ -575,7 +562,7 @@ HELP_TEXT;
 						}
 					}
 
-					$pluralClassName = makePluralString($table);
+					$pluralClassName = pluralizeClassName($table);
 					$tplData         = [
 						'PreserveCase'               => $input->preserveCase,
 						'Namespace'                  => $input->namespace,
