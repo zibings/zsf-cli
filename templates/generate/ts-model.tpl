@@ -1,51 +1,21 @@
-export interface ActivityLogModel {
-	event: string;
-	info: string;
-	timestamp: Date;
-	userId: number;
+<?php for ($i = 0; $i < count($models); $i++): ?><?php $model = $models[$i]; ?>
+export interface I<?= $this->e($model['className']) ?> {
+<?php foreach ($model['properties'] as $property): ?>	<?= $this->e($property['name']) ?>: <?= $this->e($property['type']) ?>;
+<?php endforeach; ?>
 }
 
-export class ActivityLogBase {
-	public event: string;
-	public info: string;
-	public timestamp: Date;
-	public userId: number;
+export class <?= $this->e($model['className']) ?> {
+<?php foreach ($model['properties'] as $property): ?>	public <?= $this->e($property['name']) ?>: <?= $this->e($property['type']) ?>;
+<?php endforeach; ?>
 
-	constructor(model?: ActivityLogModel) {
-		this.event = model.event ?? '';
-		this.info = model.info ?? '';
-		this.timestamp = model.timestamp ?? new Date();
-		this.userId = model.userId ?? 0;
+	constructor(model?: I<?= $this->e($model['className']) ?>) {
+<?php foreach ($model['properties'] as $property): ?>		this.<?= $this->e($property['name']) ?> = model.<?= $this->e($property['name']) ?> ?? <?= $property['defaultValue'] ?>;
+<?php endforeach; ?>
 
 		return;
 	}
 }
-
-export interface ApiSessionModel {
-	address: string;
-	created: Date;
-	hostname: string;
-	id: number;
-	token: string;
-	userId: number;
-}
-
-export class ApiSessionBase {
-	public address: string;
-	public created: Date;
-	public hostname: string;
-	public id: number;
-	public token: string;
-	public userId: number;
-
-	constructor(model?: ApiSessionModel) {
-		this.address = model.address ?? '';
-		this.created = model.created ?? new Date();
-		this.hostname = model.hostname ?? '';
-		this.id = model.id ?? 0;
-		this.token = model.token ?? '';
-		this.userId = model.userId ?? 0;
-
-		return;
-	}
-}
+<?php if ($i !== (count($models) - 1)): ?>
+<?php echo PHP_EOL; ?>
+<?php endif; ?>
+<?php endfor; ?>
