@@ -60,6 +60,7 @@
 	],
 	"extra": {
 		"files": [
+			"templates/generate/ts-model.tpl",
 			"templates/scaffold/api.tpl",
 			"templates/scaffold/cls.tpl",
 			"templates/scaffold/rpo.tpl"
