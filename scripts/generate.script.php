@@ -23,7 +23,8 @@
 				$input['model'] ?? null,
 				$input['namespace'] ?? null,
 				$input['out-dir'] ?? '',
-				$input['overwrite'] ?? false
+				$input['overwrite'] ?? false,
+				$input['singleFile'] ?? false
 			);
 		}
 
@@ -36,13 +37,15 @@
 		 * @param null|string $namespace
 		 * @param string $outDir
 		 * @param bool $overwrite
+		 * @param bool $singleFile
 		 */
 		public function __construct(
 			public string $type,
 			public null|string $model,
 			public null|string $namespace,
 			public string $outDir,
-			public bool $overwrite
+			public bool $overwrite,
+			public bool $singleFile = false
 		) {
 			return;
 		}
@@ -50,16 +53,17 @@
 
 	class GenerateScript implements ZsfCliScript {
 		protected function __getInput(ConsoleHelper $ch) : GenerateArguments {
-			$ret       = [
-				'type'      => $ch->getParameterWithDefault('t', 'type', '', true),
-				'model'     => $ch->getParameterWithDefault('m', 'model', null, true),
-				'namespace' => $ch->getParameterWithDefault('n', 'namespace', null, true),
-				'out-dir'   => $ch->getParameterWithDefault('o', 'out-dir', '', true),
-				'overwrite' => $ch->hasShortLongArg('w', 'overwrite', true),
+			$ret = [
+				'type'       => $ch->getParameterWithDefault('t', 'type', '', true),
+				'model'      => $ch->getParameterWithDefault('m', 'model', null, true),
+				'namespace'  => $ch->getParameterWithDefault('n', 'namespace', null, true),
+				'out-dir'    => $ch->getParameterWithDefault('o', 'out-dir', '', true),
+				'overwrite'  => $ch->hasShortLongArg('w', 'overwrite', true) ? true : null,
+				'singleFile' => $ch->hasShortLongArg('s', 'single-file', true) ? true : null,
 			];
 
-			$supplied = [];
-			$required = ['t.type', 'o.out-dir', 'm.model||n.namespace'];
+			$supplied        = [];
+			$required        = ['t.type', 'o.out-dir', 'm.model||n.namespace'];
 			$validationFuncs = [
 				'empty'  => function (mixed $value) : bool {
 					return !empty($value);
@@ -108,6 +112,14 @@
 					$ch->putLine('Aborting script execution, out-dir cannot be empty.');
 
 					exit;
+				}
+
+				if ($ret['overwrite'] === null) {
+					$ret['overwrite'] = false;
+				}
+
+				if ($ret['singleFile'] === null) {
+					$ret['singleFile'] = false;
 				}
 
 				return GenerateArguments::fromArray($ret);
@@ -182,7 +194,7 @@
 
 						break;
 
-					case 'model||namespace':
+					case 'm.model||n.namespace':
 						$source = $ch->getQueriedInput(
 							'Would you like to generate files based on a model or a namespace?',
 							'model',
@@ -201,7 +213,7 @@
 
 						$chosenSource = $source->getResults()[0];
 
-						if ($chosenSource === 'model') {
+						if ($chosenSource == 'model') {
 							$model = $ch->getQueriedInput(
 								'What is the model name you want to generate files for?',
 								null,
@@ -318,6 +330,7 @@ HELP_TEXT;
 				BaseDbTypes::INTEGER  => 'number',
 				BaseDbTypes::STRING   => 'string',
 			];
+
 			$defaultLookup = [
 				BaseDbTypes::BOOLEAN  => 'false',
 				BaseDbTypes::DATETIME => 'new Date()',
@@ -328,15 +341,20 @@ HELP_TEXT;
 			$input = $this->__getInput($ch);
 
 			$ch->putLine('Input:');
-			$ch->putLine('  Type:        ' . $input->type);
-			$ch->putLine('  Model:       ' . ($input->model ?? 'N/A'));
-			$ch->putLine('  Namespace:   ' . $input->namespace);
-			$ch->putLine('  Overwrite:   ' . ($input->overwrite ? 'true' : 'false'));
+			$ch->putLine('  Type:          ' . $input->type);
+			$ch->putLine('  Out Directory: ' . $input->outDir);
+			$ch->putLine('  Model:         ' . ($input->model ?? 'N/A'));
+			$ch->putLine('  Namespace:     ' . ($input->namespace ?? 'N/A'));
+			$ch->putLine('  Overwrite:     ' . ($input->overwrite ? 'true' : 'false'));
+			$ch->putLine('  Single File:   ' . ($input->singleFile ? 'true' : 'false'));
 			$ch->putLine();
 
 			if (!$fh->folderExists($input->outDir)) {
 				$fh->makeFolder($input->outDir, 0755, true);
 			}
+
+			require('tmp/LoginKey.cls.php');
+			require('tmp/Lesson.cls.php');
 
 			$modelClasses = [];
 			$blankDb      = new \Stoic\Pdo\PdoHelper('sqlite::memory:');
@@ -346,7 +364,7 @@ HELP_TEXT;
 					continue;
 				}
 
-				if ($input->model !== null && $class !== $input->model) {
+				if ($input->model !== null && !str_ends_with($class, $input->model)) {echo($class);
 					continue;
 				}
 
@@ -363,56 +381,73 @@ HELP_TEXT;
 				return;
 			}
 
+			$models = [];
+
 			$ch->putLine('Found ' . count($modelClasses) . ' model class(es):');
 
 			foreach ($modelClasses as $modelClass) {
 				$cls       = new $modelClass($blankDb);
 				$fields    = $cls->getDbColumns();
 				$shortName = $cls->getShortClassName();
-				$fileName  = $shortName . '.ts';
-				$className = "{$shortName}Base";
-				$ifaceName = "{$shortName}Model";
 
-				if (!$input->overwrite && $fh->fileExists($fh->pathJoin($input->outDir, $fileName))) {
-					$ch->putLine("  - Skipping $shortName.ts, file already exists and overwrite is disabled.");
-
-					continue;
-				}
-
-				$ch->put("  - Generating $shortName.ts.. ");
-
-				$class = "export class {$className} {";
-				$iface = "export interface {$ifaceName} {";
-				$ctorModelInit = "if (model) {";
-				$ctorPlainInit = "} else {";
+				$model       = [
+					'className'  => $shortName,
+					'properties' => []
+				];
 
 				foreach ($fields as $property => $field) {
-					$iface         .= "\n\t{$property}: {$typeLookup[$field->type->getValue()]};";
-					$ctorModelInit .= "\n\t\t\tthis.{$property} = model.{$property}";
-					$class         .= "\n\tpublic {$property}: {$typeLookup[$field->type->getValue()]};";
-					$ctorPlainInit .= "\n\t\t\tthis.{$property} = {$defaultLookup[$field->type->getValue()]}";
+					$model['properties'][$property] = [
+						'defaultValue' => $defaultLookup[$field->type->getValue()],
+						'name'         => $property,
+						'type'         => $typeLookup[$field->type->getValue()],
+					];
 				}
 
-				$iface .= "\n}";
-				$tsTpl = <<< END_OF_TS
-{$iface}
+				$models[] = $model;
+			}
 
-{$class}
+			$tplRootPath = '~/templates/generate';
 
-	constructor(model?: {$ifaceName}) {
-		{$ctorModelInit};
-		{$ctorPlainInit};
-		}
+			if (!$fh->folderExists($tplRootPath)) {
+				$tplRootPath = '~/vendor/zibings/zsf-cli/templates/generate';
 
-		return;
-	}
-}
+				if (!$fh->folderExists($tplRootPath)) {
+					$ch->putLine('Aborting script execution, generate template folder not found');
 
-END_OF_TS;
+					exit;
+				}
+			}
 
-				$fh->putContents($fh->pathJoin($input->outDir, $fileName), $tsTpl);
+			$engine = new \League\Plates\Engine($fh->pathJoin($tplRootPath), 'tpl');
 
-				$ch->putLine('DONE');
+			if ($input->singleFile) {
+				$output     = $engine->render('ts-model', ['models' => $models]);
+				$outputPath = $fh->pathJoin($input->outDir, 'generated.ts');
+
+				$ch->put("  - Generating generated.ts.. ");
+
+				if ($input->overwrite || !$fh->fileExists($outputPath)) {
+					$fh->putContents($outputPath, $output);
+					$ch->putLine("  OK");
+				} else {
+					$ch->putLine("  SKIPPED (EXISTS)");
+				}
+			} else {
+				foreach ($models as $model) {
+					$fileName = $model['className'] . '.ts';
+
+					$ch->put("  - Generating $fileName.. ");
+
+					$output     = $engine->render('ts-model', ['models' => [$model]]);
+					$outputPath = $fh->pathJoin($input->outDir, $fileName);
+
+					if ($input->overwrite || !$fh->fileExists($outputPath)) {
+						$fh->putContents($outputPath, $output);
+						$ch->putLine("  OK");
+					} else {
+						$ch->putLine("  SKIPPED (EXISTS)");
+					}
+				}
 			}
 
 			$ch->putLine();
