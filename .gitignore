@@ -4,3 +4,7 @@ vendor/
 test.php
 siteSettings.json
 generated/
+.phpunit.result.cache
+coverage/
+reports/
+tmp/
