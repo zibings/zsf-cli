@@ -8,6 +8,8 @@
 	use Stoic\Pdo\PdoDrivers;
 	use Stoic\Pdo\PdoHelper;
 
+	use Zsf\Utils\Translators\PostgreSQLTranslator;
+
 	class PostgresColumn extends ISchemaColumn {
 		/**
 		 * Returns all appropriate flags for the column.
@@ -42,6 +44,8 @@
 		 * @return void
 		 */
 		protected function parseColumn() : void {
+			$translator = new PostgreSQLTranslator();
+
 			if (isset($this->data['type'])) {
 				$this->modelType = match ($this->data['type']) {
 					'integer', 'smallint', 'bigint'       => new BaseDbTypes(BaseDbTypes::INTEGER),
@@ -50,13 +54,7 @@
 					default                               => new BaseDbTypes(BaseDbTypes::STRING),
 				};
 
-				$this->phpType = match ($this->data['type']) {
-					'integer', 'smallint', 'bigint'       => 'int',
-					'numeric', 'real', 'double precision' => 'float',
-					'date', 'timestamp', 'timestamptz'    => '\DateTimeInterface',
-					'boolean'                             => 'bool',
-					default                               => 'string',
-				};
+				$this->phpType = $translator->toPhpType($this->data['type']);
 			}
 
 			if (isset($this->data['key']) && $this->data['key'] === 'PK') {
