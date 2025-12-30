@@ -324,20 +324,6 @@ HELP_TEXT;
 				return;
 			}
 
-			$typeLookup = [
-				BaseDbTypes::BOOLEAN  => 'boolean',
-				BaseDbTypes::DATETIME => 'Date',
-				BaseDbTypes::INTEGER  => 'number',
-				BaseDbTypes::STRING   => 'string',
-			];
-
-			$defaultLookup = [
-				BaseDbTypes::BOOLEAN  => 'false',
-				BaseDbTypes::DATETIME => 'new Date()',
-				BaseDbTypes::INTEGER  => '0',
-				BaseDbTypes::STRING   => "''",
-			];
-
 			$input = $this->__getInput($ch);
 
 			$ch->putLine('Input:');
@@ -381,7 +367,22 @@ HELP_TEXT;
 				return;
 			}
 
-			$models = [];
+			$models     = [];
+			$translator = new \Zsf\Utils\Translators\TypeScriptTranslator();
+
+			$typeLookup = [
+				BaseDbTypes::BOOLEAN  => $translator->toTranslatedType('bool'),
+				BaseDbTypes::DATETIME => $translator->toTranslatedType('\DateTimeInterface'),
+				BaseDbTypes::INTEGER  => $translator->toTranslatedType('int'),
+				BaseDbTypes::STRING   => $translator->toTranslatedType('string'),
+			];
+
+			$defaultLookup = [
+				BaseDbTypes::BOOLEAN  => $translator->defaultTranslatedValue('bool'),
+				BaseDbTypes::DATETIME => $translator->defaultTranslatedValue('\DateTimeInterface'),
+				BaseDbTypes::INTEGER  => $translator->defaultTranslatedValue('int'),
+				BaseDbTypes::STRING   => $translator->defaultTranslatedValue('string'),
+			];
 
 			$ch->putLine('Found ' . count($modelClasses) . ' model class(es):');
 
