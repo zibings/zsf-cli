@@ -52,7 +52,7 @@
 			public string $db,
 			public string $namespace,
 			public bool $overwrite,
-			public string $table,
+			public null|string $table,
 			public string $type,
 			public null|string $connection,
 			public bool $preserveCase = false,
@@ -120,7 +120,7 @@
 			$ret = [
 				'db'           => $ch->getParameterWithDefault('db', 'database', '', true),
 				'namespace'    => $ch->getParameterWithDefault('ns', 'namespace', '', true),
-				'table'        => $ch->getParameterWithDefault('table', 'table', '', true),
+				'table'        => $ch->getParameterWithDefault('table', 'table', null, true),
 				'type'         => $ch->getParameterWithDefault('type', 'type', '', true),
 				'connection'   => $ch->getParameterWithDefault('c', 'connection', 'default', true),
 				'apiNamespace' => $ch->getParameterWithDefault('api', 'api-namespace', '', true),
@@ -435,8 +435,8 @@ HELP_TEXT;
 
 			$ch->putLine('Input:');
 			$ch->putLine('  Type:          ' . $input->type);
-			$ch->putLine('  Table:         ' . $input->table ?? 'N/A');
-			$ch->putLine('  Database:      ' . $input->db ?? 'N/A');
+			$ch->putLine('  Table:         ' . ($input->table ?? 'N/A'));
+			$ch->putLine('  Database:      ' . ($input->db ?? 'N/A'));
 			$ch->putLine('  Namespace:     ' . $input->namespace);
 			$ch->putLine('  API Namespace: ' . $input->apiNamespace);
 			$ch->putLine('  Connection:    ' . $input->connection ?? 'N/A');
