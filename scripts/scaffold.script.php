@@ -15,6 +15,8 @@
 	use Zsf\Utils\SchemaReader\SqlServer as SqlServerReader;
 	use Zsf\Utils\ZsfCliScript;
 
+	use function Zsf\Utils\makePluralString;
+
 	class ScaffoldArguments {
 		/**
 		 * Create a ScaffoldArguments object from an array of input values.
@@ -527,6 +529,19 @@ HELP_TEXT;
 					$reader->parseAllTableColumns($input->db);
 				}
 
+				$pluralizeClassName = function (string $className) : string {
+					preg_match_all('/[A-Z][a-z0-9]*/', $className, $matches);
+					$parts = $matches[0];
+
+					if (empty($parts)) {
+						return $className;
+					}
+
+					$last = array_pop($parts);
+
+					return makePluralString($last);
+				};
+
 				foreach ($reader->tables as $table => $columns) {
 					$ch->putLine('Generating Table Data: ' . $table);
 
@@ -560,67 +575,8 @@ HELP_TEXT;
 						}
 					}
 
-					$makePluralString = function (string $className): string {
-						preg_match_all('/[A-Z][a-z0-9]*/', $className, $matches);
-						$parts = $matches[0];
-
-						if (empty($parts)) {
-							return $className;
-						}
-
-						$last = array_pop($parts);
-						$lower = strtolower($last);
-
-						$irregular = [
-							'person'     => 'people',
-							'man'        => 'men',
-							'woman'      => 'women',
-							'child'      => 'children',
-							'tooth'      => 'teeth',
-							'foot'       => 'feet',
-							'mouse'      => 'mice',
-							'goose'      => 'geese',
-							'ox'         => 'oxen',
-							'leaf'       => 'leaves',
-							'life'       => 'lives',
-							'knife'      => 'knives',
-							'wife'       => 'wives',
-							'half'       => 'halves',
-							'elf'        => 'elves',
-							'loaf'       => 'loaves',
-							'potato'     => 'potatoes',
-							'tomato'     => 'tomatoes',
-							'cactus'     => 'cacti',
-							'focus'      => 'foci',
-							'fungus'     => 'fungi',
-							'nucleus'    => 'nuclei',
-							'syllabus'   => 'syllabi',
-							'analysis'   => 'analyses',
-							'diagnosis'  => 'diagnoses',
-							'thesis'     => 'theses',
-							'phenomenon' => 'phenomena',
-							'criterion'  => 'criteria',
-							'datum'      => 'data'
-						];
-
-						$plural = $irregular[$lower] ?? match (true) {
-							preg_match('/[^aeiou]o$/i', $last), preg_match('/(s|x|z|ch|sh)$/i', $last) => $last . 'es',
-							preg_match('/[^aeiou]y$/i', $last) => substr($last, 0, -1) . 'ies',
-							preg_match('/(fe|f)$/i', $last) => preg_replace('/(fe|f)$/i', 'ves', $last),
-							preg_match('/is$/i', $last) => substr($last, 0, -2) . 'es',
-							preg_match('/us$/i', $last) => substr($last, 0, -2) . 'i',
-							preg_match('/on$/i', $last) => substr($last, 0, -2) . 'a',
-							default => $last . 's',
-						};
-
-						$parts[] = $plural;
-
-						return implode('', $parts);
-					};
-
-					$pluralClassName = $makePluralString($table);
-
-					$tplData = [
+					$pluralClassName = makePluralString($table);
+					$tplData         = [
 						'PreserveCase'               => $input->preserveCase,
 						'Namespace'                  => $input->namespace,
 						'ApiNamespace'               => $input->apiNamespace,
