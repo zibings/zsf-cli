@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+				bootstrap="vendor/autoload.php"
+				colors="false"
+				stopOnError="false"
+				stopOnFailure="false"
+				stopOnIncomplete="false"
+				stopOnSkipped="false"
+				stopOnRisky="false"
+				displayDetailsOnTestsThatTriggerDeprecations="true"
+				displayDetailsOnPhpunitDeprecations="true">
+	<coverage includeUncoveredFiles="true">
+		<report>
+			<clover outputFile="coverage/phpunit.xml"/>
+			<html outputDirectory="coverage/"/>
+		</report>
+	</coverage>
+	<php>
+		<ini name="error_reporting" value="-1"/>
+	</php>
+	<source>
+		<include>
+			<directory suffix=".php">./Zsf</directory>
+		</include>
+	</source>
+	<testsuites>
+		<testsuite name="Utility Tests">
+			<directory suffix="Test.php">./Tests/</directory>
+		</testsuite>
+	</testsuites>
+	<logging>
+		<junit outputFile="reports/phpunit.xml"/>
+	</logging>
+</phpunit>
