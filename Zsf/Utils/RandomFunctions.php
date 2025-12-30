@@ -2,6 +2,12 @@
 
 	namespace Zsf\Utils;
 
+	/**
+	 * Makes a string plural based on common English language rules.
+	 *
+	 * @param string $string
+	 * @return string
+	 */
 	function makePluralString(string $string) : string {
 		$lower     = strtolower($string);
 		$irregular = [
@@ -68,8 +74,14 @@
 		return $string . 's';
 	}
 
+	/**
+	 * Pluralizes a class name by converting the last CamelCase or snake_case segment to its plural form.
+	 *
+	 * @param string $className
+	 * @return string
+	 */
 	function pluralizeClassName(string $className) : string {
-		preg_match_all('/[A-Z][a-z0-9]*/', $className, $matches);
+		preg_match_all('/[A-Z][a-z0-9]*|[a-z0-9]+/', $className, $matches);
 		$parts = $matches[0];
 
 		if (empty($parts)) {
@@ -79,6 +91,10 @@
 		$last = array_pop($parts);
 		$last = makePluralString($last);
 		$parts[] = $last;
+
+		if (stripos($className, '_') !== false) {
+			return implode('_', $parts);
+		}
 
 		return implode('', $parts);
 	}

@@ -32,6 +32,7 @@
 			self::assertEquals('AnalysisReports', pluralizeClassName('AnalysisReport'));
 			self::assertEquals('DatumPoints', pluralizeClassName('DatumPoint'));
 			self::assertEquals('CatToyses', pluralizeClassName('CatToys'));
+			self::assertEquals('my_cats', pluralizeClassName('my_cat'));
 
 			return;
 		}
