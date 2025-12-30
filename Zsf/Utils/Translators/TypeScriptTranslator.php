@@ -11,19 +11,21 @@
 				'Array'   => 'array',
 				'object'  => 'object',
 				'null'    => 'null',
-				'default' => 'mixed',
+				'Date'    => '\DateTimeInterface',
+				default   => 'mixed',
 			};
 		}
 
 		public function toTranslatedType(string $type) : string {
 			return match ($type) {
-				'float', 'int' => 'number',
-				'string'       => 'string',
-				'bool'         => 'boolean',
-				'array'        => 'Array',
-				'object'       => 'object',
-				'null'         => 'null',
-				'default'      => 'any',
+				'float', 'int'       => 'number',
+				'string'             => 'string',
+				'bool'               => 'boolean',
+				'array'              => 'Array',
+				'object'             => 'object',
+				'null'               => 'null',
+				'\DateTimeInterface' => 'Date',
+				default              => 'any',
 			};
 		}
 	}

@@ -15,7 +15,7 @@
 
 		public function toTranslatedType(string $type) : string {
 			return match ($type) {
-				'int'                => 'integer',
+				'int'                => 'int',
 				'float'              => 'decimal',
 				'bool'               => 'bit',
 				'\DateTimeInterface' => 'datetime',

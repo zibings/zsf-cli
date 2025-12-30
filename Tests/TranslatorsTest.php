@@ -62,13 +62,13 @@
 			self::assertEquals('float', $pgsql->toPhpType('real'));
 			self::assertEquals('\DateTimeInterface', $pgsql->toPhpType('timestamp'));
 			self::assertEquals('bool', $pgsql->toPhpType('boolean'));
-			self::assertEquals('string', $pgsql->toPhpType('default'));
+			self::assertEquals('string', $pgsql->toPhpType('text'));
 
 			self::assertEquals('integer', $pgsql->toTranslatedType('int'));
 			self::assertEquals('real', $pgsql->toTranslatedType('float'));
-			self::assertEquals('timestamp', $pgsql->toTranslatedType('date'));
+			self::assertEquals('timestamp', $pgsql->toTranslatedType('\DateTimeInterface'));
 			self::assertEquals('boolean', $pgsql->toTranslatedType('bool'));
-			self::assertEquals('string', $pgsql->toTranslatedType('default'));
+			self::assertEquals('text', $pgsql->toTranslatedType('mixed'));
 
 			return;
 		}
@@ -80,13 +80,13 @@
 			self::assertEquals('float', $sqlsrv->toPhpType('float'));
 			self::assertEquals('\DateTimeInterface', $sqlsrv->toPhpType('datetime'));
 			self::assertEquals('bool', $sqlsrv->toPhpType('bit'));
-			self::assertEquals('string', $sqlsrv->toPhpType('default'));
+			self::assertEquals('string', $sqlsrv->toPhpType('varchar'));
 
 			self::assertEquals('int', $sqlsrv->toTranslatedType('int'));
-			self::assertEquals('float', $sqlsrv->toTranslatedType('float'));
-			self::assertEquals('datetime', $sqlsrv->toTranslatedType('date'));
+			self::assertEquals('decimal', $sqlsrv->toTranslatedType('float'));
+			self::assertEquals('datetime', $sqlsrv->toTranslatedType('\DateTimeInterface'));
 			self::assertEquals('bit', $sqlsrv->toTranslatedType('bool'));
-			self::assertEquals('string', $sqlsrv->toTranslatedType('default'));
+			self::assertEquals('string', $sqlsrv->toTranslatedType('mixed'));
 
 			return;
 		}
@@ -94,7 +94,8 @@
 		public function test_TypeScriptTranslator() : void {
 			$ts = new Translators\TypeScriptTranslator();
 
-			self::assertEquals('number', $ts->toPhpType('number'));
+			self::assertEquals('\DateTimeInterface', $ts->toPhpType('Date'));
+			self::assertEquals('float|int', $ts->toPhpType('number'));
 			self::assertEquals('string', $ts->toPhpType('string'));
 			self::assertEquals('bool', $ts->toPhpType('boolean'));
 			self::assertEquals('array', $ts->toPhpType('Array'));
@@ -102,6 +103,7 @@
 			self::assertEquals('null', $ts->toPhpType('null'));
 			self::assertEquals('mixed', $ts->toPhpType('default'));
 
+			self::assertEquals('Date', $ts->toTranslatedType('\DateTimeInterface'));
 			self::assertEquals('number', $ts->toTranslatedType('float'));
 			self::assertEquals('number', $ts->toTranslatedType('int'));
 			self::assertEquals('string', $ts->toTranslatedType('string'));
