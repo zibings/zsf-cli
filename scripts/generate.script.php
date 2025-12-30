@@ -339,9 +339,6 @@ HELP_TEXT;
 				$fh->makeFolder($input->outDir, 0755, true);
 			}
 
-			require('tmp/LoginKey.cls.php');
-			require('tmp/Lesson.cls.php');
-
 			$modelClasses = [];
 			$blankDb      = new \Stoic\Pdo\PdoHelper('sqlite::memory:');
 
