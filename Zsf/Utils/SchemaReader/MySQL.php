@@ -8,6 +8,8 @@
 	use Stoic\Pdo\PdoDrivers;
 	use Stoic\Pdo\PdoHelper;
 
+	use Zsf\Utils\Translators\MySQLTranslator;
+
 	class MySQLColumn extends ISchemaColumn {
 		/**
 		 * Returns all appropriate flags for the column.
@@ -42,6 +44,8 @@
 		 * @return void
 		 */
 		protected function parseColumn() : void {
+			$translator = new MySQLTranslator();
+
 			if (isset($this->data['type'])) {
 				$this->modelType = match ($this->data['type']) {
 					'int',     'tinyint',  'bigint'    => new BaseDbTypes(BaseDbTypes::INTEGER),
@@ -50,13 +54,7 @@
 					default                            => new BaseDbTypes(BaseDbTypes::STRING),
 				};
 
-				$this->phpType = match ($this->data['type']) {
-					'int',     'tinyint',  'bigint'    => 'int',
-					'float',   'double',   'decimal'   => 'float',
-					'date',    'datetime', 'timestamp' => '\DateTimeInterface',
-					'bool',    'boolean'               => 'bool',
-					default                            => 'string',
-				};
+				$this->phpType = $translator->toPhpType($this->data['type']);
 			}
 
 			if (isset($this->data['key']) && $this->data['key'] === 'PRI') {
