@@ -100,6 +100,8 @@
 		 * @return void
 		 */
 		protected function __setupModel() : void {
+			$this->setTableName('<?= $this->e($TableName) ?>');
+
 <?php foreach ($Columns as $column): ?>
 			$this->setColumn('<?= $this->e($column->getName($PreserveCase)) ?>', '<?= $this->e($column->getName()) ?>', BaseDbTypes::<?= $this->e($column->getModelType()) ?><?php if (count($column->getFlags()) > 0): ?>, BCF::<?= $this->e(implode(' | BCF::', $column->getFlags())) ?><?php endif; ?>);
 <?php endforeach; ?>
