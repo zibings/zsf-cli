@@ -9,7 +9,7 @@
 	use Stoic\Pdo\StoicDbClass;
 
 	class <?= $this->e($PluralClassName) ?> extends StoicDbClass {
-		protected <?= $this->e($PluralClassName) ?> $obj;
+		protected <?= $this->e($ClassName) ?> $obj;
 
 
 		/**
@@ -21,7 +21,7 @@
 		public function __construct(PdoHelper $db, null|Logger $log = null) {
 			parent::__construct($db, $log);
 
-			$this->obj = new <?= $this->e($PluralClassName) ?>($db, $log);
+			$this->obj = new <?= $this->e($ClassName) ?>($db, $log);
 
 			return;
 		}
@@ -29,7 +29,7 @@
 		/**
 		 * Retrieves all <?= $this->e($PluralClassName) ?> from the database.
 		 *
-		 * @return <?= $this->e($PluralClassName) ?>[]
+		 * @return <?= $this->e($ClassName) ?>[]
 		 */
 		public function getAll<?= $this->e($PluralClassName) ?>(): array {
 			$ret = [];
@@ -37,7 +37,7 @@
 				$query = $this->db->query($this->obj->generateClassQuery(BaseDbQueryTypes::SELECT, false));
 
 				while ($row = $query->fetch(\PDO::FETCH_ASSOC)) {
-					$ret[] = <?= $this->e($PluralClassName) ?>::fromArray($row, $this->db, $this->log);
+					$ret[] = <?= $this->e($ClassName) ?>::fromArray($row, $this->db, $this->log);
 				}
 
 				return;
